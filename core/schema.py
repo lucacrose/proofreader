@@ -30,3 +30,46 @@ class TradeSide:
 class TradeLayout:
     outgoing: TradeSide = field(default_factory=TradeSide)
     incoming: TradeSide = field(default_factory=TradeSide)
+
+    def to_dict(self, row_tolerance=16) -> dict:
+        def serialize_side(side: TradeSide):
+            robux_val = side.robux.value if side.robux else 0
+            
+            if not side.items:
+                return {"item_count": 0, "robux_value": robux_val, "items": []}
+            
+            raw_items = [it for it in side.items if it.container_box]
+            raw_items.sort(key=lambda x: x.container_box.coords[1])
+
+            rows = []
+            if raw_items:
+                current_row = [raw_items[0]]
+                for i in range(1, len(raw_items)):
+                    prev_y = current_row[-1].container_box.coords[1]
+                    curr_y = raw_items[i].container_box.coords[1]
+                    
+                    if abs(curr_y - prev_y) < row_tolerance:
+                        current_row.append(raw_items[i])
+                    else:
+                        rows.append(current_row)
+                        current_row = [raw_items[i]]
+                rows.append(current_row)
+            
+            final_sorted = []
+            for row in rows:
+                row.sort(key=lambda x: x.container_box.coords[0])
+                final_sorted.extend(row)
+
+            return {
+                "item_count": len(side.items),
+                "robux_value": robux_val,
+                "items": [
+                    {"id": item.id, "name": item.name} 
+                    for item in final_sorted
+                ]
+            }
+
+        return {
+            "outgoing": serialize_side(self.outgoing),
+            "incoming": serialize_side(self.incoming)
+        }

@@ -43,3 +43,5 @@ print(trade_layout)
 matcher.match_item_visuals("test.png", trade_layout)
 
 print(trade_layout)
+
+print(trade_layout.to_dict())
