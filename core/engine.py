@@ -34,11 +34,11 @@ class TradeEngine:
             device=self.device
         )
 
-    def process_image(self, image_path: str) -> dict:
+    def process_image(self, image_path: str, conf_threshold: float) -> dict:
         if not os.path.exists(image_path):
             raise FileNotFoundError(f"Image not found: {image_path}")
         
-        boxes = self.detector.detect(image_path)
+        boxes = self.detector.detect(image_path, conf_threshold)
         layout = self.resolver.resolve(boxes)
 
         image = cv2.imread(image_path)
