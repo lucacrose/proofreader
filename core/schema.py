@@ -10,6 +10,7 @@ class Box:
 @dataclass
 class ResolvedItem:
     name: str = "Unknown"
+    id: int = 0
     container_box: Optional[Box] = None
     thumb_box: Optional[Box] = None
     name_box: Optional[Box] = None
