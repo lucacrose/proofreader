@@ -17,11 +17,15 @@ class ResolvedItem:
 @dataclass
 class ResolvedRobux:
     value: int = 0
+    container_box: Optional[Box] = None
     value_box: Optional[Box] = None
 
 @dataclass
+class TradeSide:
+    items: List[ResolvedItem] = field(default_factory=list)
+    robux: Optional[ResolvedRobux] = None
+
+@dataclass
 class TradeLayout:
-    outgoing_items: List[ResolvedItem] = field(default_factory=list)
-    incoming_items: List[ResolvedItem] = field(default_factory=list)
-    incoming_robux: ResolvedRobux = field(default_factory=ResolvedRobux)
-    outgoing_robux: ResolvedRobux = field(default_factory=ResolvedRobux)
+    outgoing: TradeSide = field(default_factory=TradeSide)
+    incoming: TradeSide = field(default_factory=TradeSide)

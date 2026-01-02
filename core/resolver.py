@@ -55,18 +55,22 @@ class SpatialResolver:
             item.thumb_box = next((t for t in thumbs if self.is_contained(t, card)), None)
 
             if self.get_center(card)[1] < split_y:
-                layout.outgoing_items.append(item)
+                layout.outgoing.items.append(item)
             else:
-                layout.incoming_items.append(item)
+                layout.incoming.items.append(item)
 
         for line in robux_lines:
             val_box = next((v for v in values if self.is_contained(v, line)), None)
             
             if val_box:
-                robux_obj = ResolvedRobux(value_box=val_box)
+                robux_obj = robux_obj = ResolvedRobux(
+                    container_box=line,
+                    value_box=val_box
+                )
+
                 if self.get_center(line)[1] < split_y:
-                    layout.outgoing_robux = robux_obj 
+                    layout.outgoing.robux = robux_obj 
                 else:
-                    layout.incoming_robux = robux_obj
+                    layout.incoming.robux = robux_obj
 
         return layout
