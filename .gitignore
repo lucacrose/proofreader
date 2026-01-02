@@ -4,7 +4,7 @@ downloader/media/
 downloader/buffers/
 
 # Dataset files used for training
-generator/dataset/
+train/dataset/
 generator/assets/
 
 # Site Templates
