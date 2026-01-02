@@ -1,1 +1,34 @@
-data/
+# --- Large Data & Media ---
+# Thousands of scraped files from the downloader
+downloader/media/
+downloder/buffers/
+
+# Dataset files used for training
+generator/dataset/
+generator/assets/
+
+# Site Templates
+generator/templates/
+
+# --- Model Weights & Training Artifacts ---
+# PyTorch weights and YOLO models
+*.pt
+embedding_bank.pt
+yolo11n.pt
+
+# YOLO/Ultralytics training runs
+runs/
+
+# --- Debug & Temporary Files ---
+# Logs and temporary visualization outputs
+debug_outputs/
+debug_results/
+*.cache
+*.log
+
+# --- Python Environment ---
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env

@@ -1,0 +1,10 @@
+path: ./generator/dataset
+train: train/images
+val: val/images
+
+names:
+  0: item_card
+  1: item_thumb
+  2: item_name
+  3: robux_line
+  4: robux_value
