@@ -32,3 +32,9 @@ __pycache__/
 *$py.class
 venv/
 .env
+
+# Legacy
+old/
+
+# Local
+assets/
