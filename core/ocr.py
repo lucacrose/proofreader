@@ -51,11 +51,6 @@ class OCRReader:
             raw_val = self._get_text_from_box(image, side.robux.value_box, is_robux=True)
             side.robux.value = self._clean_robux_text(raw_val)
 
-    def process_layout(self, image_source: str, layout: TradeLayout):
-        image = cv2.imread(image_source)
-
-        if image is None:
-            raise FileNotFoundError(f"Could not load image at {image_source}")
-        
+    def process_layout(self, image: str, layout: TradeLayout):
         self.process_side(image, layout.outgoing)
         self.process_side(image, layout.incoming)

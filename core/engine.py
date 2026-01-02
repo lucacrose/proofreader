@@ -1,4 +1,5 @@
 import os
+import cv2
 import torch
 import json
 from transformers import CLIPProcessor, CLIPModel
@@ -34,8 +35,10 @@ class TradeEngine:
         boxes = self.detector.detect(image_path)
         layout = self.resolver.resolve(boxes)
 
-        self.reader.process_layout(image_path, layout)
+        image = cv2.imread(image_path)
 
-        self.matcher.match_item_visuals(image_path, layout)
+        self.reader.process_layout(image, layout)
+
+        self.matcher.match_item_visuals(image, layout)
 
         return layout.to_dict()

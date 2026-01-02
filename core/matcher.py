@@ -19,9 +19,7 @@ class VisualMatcher:
         item = next((i for i in self.item_db if i["name"] == name), None)
         return int(item["id"]) if item else 0
 
-    def match_item_visuals(self, image_source: str, layout: TradeLayout):
-        image = cv2.imread(image_source)
-
+    def match_item_visuals(self, image: str, layout: TradeLayout):
         for side in (layout.outgoing.items, layout.incoming.items):
             for item in side:
                 if not item.thumb_box:
