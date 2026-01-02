@@ -1,7 +1,7 @@
 # --- Large Data & Media ---
 # Thousands of scraped files from the downloader
 downloader/media/
-downloder/buffers/
+downloader/buffers/
 
 # Dataset files used for training
 generator/dataset/
