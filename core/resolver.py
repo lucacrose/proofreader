@@ -1,5 +1,5 @@
 from typing import List
-from core.schema import Box, ResolvedItem, TradeLayout
+from core.schema import Box, ResolvedItem, ResolvedRobux, TradeLayout
 
 class SpatialResolver:
     def __init__(self):
@@ -63,9 +63,10 @@ class SpatialResolver:
             val_box = next((v for v in values if self.is_contained(v, line)), None)
             
             if val_box:
+                robux_obj = ResolvedRobux(value_box=val_box)
                 if self.get_center(line)[1] < split_y:
-                    layout.outgoing_robux_box = val_box 
+                    layout.outgoing_robux = robux_obj 
                 else:
-                    layout.incoming_robux_box = val_box
+                    layout.incoming_robux = robux_obj
 
         return layout
