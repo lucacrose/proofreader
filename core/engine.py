@@ -7,21 +7,23 @@ from core.detector import TradeDetector
 from core.resolver import SpatialResolver
 from core.ocr import OCRReader
 from core.matcher import VisualMatcher
+from train.builder import EmbeddingBuilder
+from core.config import DB_PATH, CACHE_PATH, MODEL_PATH
 
 class TradeEngine:
-    def __init__(self, model_path="assets/weights/yolo_v1.pt", db_path="assets/db.json", cache_file="assets/embedding_bank.pt", device: str = None):
+    def __init__(self, device: str = None):
         self.device = device if device else "cuda" if torch.cuda.is_available() else "cpu"
 
         self.clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(self.device)
         self.clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32", use_fast=True)
         
-        with open(db_path, "r") as f:
+        with open(DB_PATH, "r") as f:
             item_db = json.load(f)
         
-        cache_data = torch.load(cache_file, weights_only=False)['embeddings']
+        cache_data = torch.load(CACHE_PATH, weights_only=False)['embeddings']
         self.embeddings = {k: torch.tensor(v).to(self.device) for k, v in cache_data.items()}
 
-        self.detector = TradeDetector(model_path)
+        self.detector = TradeDetector(MODEL_PATH)
         self.resolver = SpatialResolver()
         
         self.reader = OCRReader(gpu=(self.device == "cuda"))
@@ -33,6 +35,13 @@ class TradeEngine:
             clip_model=self.clip_model,
             device=self.device
         )
+
+        self.builder = EmbeddingBuilder(self.clip_model, self.clip_processor)
+
+        if not os.path.exists(CACHE_PATH):
+            self.builder.build()
+        elif os.path.getmtime(DB_PATH) > os.path.getmtime(CACHE_PATH):
+            self.builder.build()
 
     def process_image(self, image_path: str, conf_threshold: float) -> dict:
         if not os.path.exists(image_path):

@@ -2,7 +2,6 @@ import torch
 import numpy as np
 import cv2
 from PIL import Image
-from scipy.spatial.distance import cosine
 from typing import Dict, List, Any
 from core.schema import TradeLayout
 
