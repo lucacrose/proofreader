@@ -1,4 +1,15 @@
-([newItems, userData, is_empty_trade, backgrounds_count]) => {
+([newItems, is_empty_trade, backgrounds_count, config]) => {
+    function generateRandomUsername() {
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_";
+        const length = Math.floor(Math.random() * (20 - 3 + 1)) + 3;
+        
+        let result = "";
+        for (let i = 0; i < length; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    }
+
     function getRandomInt(min, max) {
         min = Math.ceil(min);
         max = Math.floor(max);
@@ -20,32 +31,6 @@
         return `rgba(${r}, ${g}, ${b}, ${a})`;
     }
 
-    const randomIndex = Math.floor(Math.random() * backgrounds_count) + 1;
-
-    const paddedIndex = String(randomIndex).padStart(3, '0');
-
-    const randomBgUrl = `url('../backgrounds/unsplash_${paddedIndex}.jpg')`;
-
-    if (Math.random() < 0.75) {
-        const container = document.querySelector(".container-main");
-        container.style.backgroundImage = randomBgUrl;
-        container.style.backgroundSize = "cover";
-        container.style.backgroundPosition = "center";
-        container.style.backgroundRepeat = "no-repeat";
-    }
-
-    if (Math.random() < 0.75) {
-        const content = document.querySelector(".content");
-        content.style.backgroundColor = getRandomColor();
-        content.style.color = getRandomColor(0.95, 1);
-    }
-    
-    const nameElements = document.querySelectorAll('.paired-name .element');
-    if(nameElements.length >= 2) {
-        nameElements[0].innerText = userData.display;
-        nameElements[1].innerText = userData.handle;
-    }
-            
     function randomAlphanumericWithSpaces(min = 2, max = 48) {
         const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         const length = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -53,10 +38,10 @@
         let result = chars[Math.floor(Math.random() * chars.length)];
 
         for (let i = 1; i < length; i++) {
-            if (result[result.length - 1] === " ") {
-            result += chars[Math.floor(Math.random() * chars.length)];
+            if (!config.name.double_spacing && result[result.length - 1] === " ") {
+                result += chars[Math.floor(Math.random() * chars.length)];
             } else {
-            result += Math.random() < 0.15
+            result += Math.random() < config.name.space_chance
                 ? " "
                 : chars[Math.floor(Math.random() * chars.length)];
             }
@@ -64,6 +49,28 @@
 
         return result;
     }
+
+    const randomIndex = getRandomInt(0, backgrounds_count - 1);
+    const paddedIndex = String(randomIndex).padStart(3, '0');
+    const randomBgUrl = `url('../backgrounds/unsplash_${paddedIndex}.jpg')`;
+
+    if (Math.random() < config.background.chance) {
+        const container = document.querySelector(".container-main");
+        container.style.backgroundImage = randomBgUrl;
+        container.style.backgroundSize = "cover";
+        container.style.backgroundPosition = "center";
+        container.style.backgroundRepeat = "no-repeat";
+    }
+
+    if (Math.random() < config.recolor.chance) {
+        const content = document.querySelector(".content");
+        content.style.backgroundColor = getRandomColor(config.recolor.container_min_opacity, config.recolor.container_max_opacity);
+        content.style.color = getRandomColor(config.recolor.text_min_opacity, config.recolor.text_max_opacity);
+    }
+    
+    const nameElements = document.querySelectorAll('.paired-name .element');
+    nameElements[0].innerText = generateRandomUsername();
+    nameElements[1].innerText = generateRandomUsername();
             
     const cards = document.querySelectorAll('div[trade-item-card]');
     cards.forEach((card, index) => {
@@ -71,8 +78,8 @@
         const sideIndex = isFirstSide ? 0 : 1;
         const itemIndex = isFirstSide ? index : index - 4;
         const data = newItems[sideIndex][itemIndex];
-        const hideName = Math.random() < 0.2;
-        const hideThumb = Math.random() < 0.2;
+        const hideName = Math.random() < config.cards.name_hide_chance;
+        const hideThumb = Math.random() < config.cards.thumb_hide_chance;
 
         if (data) {
             card.style.visibility = "visible";
@@ -80,39 +87,32 @@
             card.setAttribute("data-item-id", data.id);
 
             const img = card.querySelector('img');
-            if (img) img.src = data.img;
+            img.src = data;
 
             const priceLabel = card.querySelector('.text-robux');
-            if (priceLabel) {
-                priceLabel.innerText = getRandomNumberEqualDigits(1, 9).toLocaleString();
+            priceLabel.innerText = getRandomNumberEqualDigits(1, 9).toLocaleString();
 
-                const priceLine = priceLabel.closest('.item-card-price');
+            const priceLine = priceLabel.closest('.item-card-price');
 
-                if (
-                    priceLine &&
-                    Math.random() < 0.35 &&
-                    !priceLine.nextElementSibling?.classList.contains('item-card-price')
-                ) {
-                    const clone = priceLine.cloneNode(true);
+            if (
+                priceLine &&
+                Math.random() < config.cards.duplicate_price_line_chance &&
+                !priceLine.nextElementSibling?.classList.contains('item-card-price')
+            ) {
+                const clone = priceLine.cloneNode(true);
 
-                    const cloneValue = clone.querySelector('.text-robux');
-                    if (cloneValue) {
-                        const base = Number(priceLabel.innerText.replace(/,/g, ''));
-                        cloneValue.innerText = getRandomNumberEqualDigits(1, 9).toLocaleString();
-                    }
+                const cloneValue = clone.querySelector('.text-robux');
+                cloneValue.innerText = getRandomNumberEqualDigits(1, 9).toLocaleString();
 
-                    priceLine.parentElement.insertBefore(clone, priceLine.nextSibling);
-                }
+                priceLine.parentElement.insertBefore(clone, priceLine.nextSibling);
             }
 
             const nameLabel = card.querySelector('.item-card-name');
-            if (nameLabel) {
-                nameLabel.innerText = randomAlphanumericWithSpaces();
-                nameLabel.style.lineHeight = `${Math.floor(Math.random() * 17) + 12}px`;
-            }
+            nameLabel.innerText = randomAlphanumericWithSpaces();
+            nameLabel.style.lineHeight = `${getRandomInt(config.cards.line_height_min, config.line_height_max)}px`;
 
-            if (hideName && nameLabel) nameLabel.style.display = "none";
-            if (hideThumb && img) img.parentElement.parentElement.parentElement.parentElement.style.display = "none";
+            if (hideName) nameLabel.style.display = "none";
+            if (hideThumb) img.parentElement.parentElement.parentElement.parentElement.style.display = "none";
         } else {
             card.style.opacity = "0"; 
             card.setAttribute("data-item-id", "");
@@ -120,10 +120,8 @@
     });
     
     const robuxLines = document.querySelectorAll(".robux-line");
-    if(robuxLines.length >= 3) {
-        robuxLines[0].style.display = is_empty_trade ? "none" : (Math.random() < 0.25 ? "none" : "");
-        robuxLines[2].style.display = is_empty_trade ? "none" : (Math.random() < 0.25 ? "none" : "");
-    }
+    robuxLines[0].style.display = is_empty_trade ? "none" : (Math.random() < config.robux_lines.hide_chance ? "none" : "");
+    robuxLines[2].style.display = is_empty_trade ? "none" : (Math.random() < config.robux_lines.hide_chance ? "none" : "");
             
     document.querySelectorAll(".robux-line-value").forEach(el => {
         el.textContent = getRandomNumberEqualDigits(1, 10).toLocaleString();
@@ -133,7 +131,7 @@
         const numberContainer = container.querySelector(".limited-number-container");
         const numberSpan = container.querySelector(".limited-number");
         if (!numberContainer || !numberSpan) return;
-        const show = Math.random() < 0.5;
+        const show = Math.random() < config.cards.display_serial_chance;
         if (show) {
             numberContainer.style.display = "";
             numberSpan.style.display = "";
@@ -145,17 +143,17 @@
     });
             
     document.querySelectorAll('.item-card-name, .item-card-price').forEach(el => {
-        const offsetLeft = Math.floor(Math.random() * 25)
-        const offsetTop = Math.floor(Math.random() * 13);
+        const offsetLeft = Math.floor(getRandomInt(config.cards.left_offset_min, config.cards.left_offset_max))
+        const offsetTop = Math.floor(getRandomInt(config.cards.top_offset_min, config.cards.top_offset_max));
         el.style.marginLeft = `${offsetLeft}px`;
         el.style.marginTop = `${offsetTop}px`;
     });
     
     const withColon = text =>
-    Math.random() < 0.5 ? `${text}:` : text;
+    Math.random() < config.robux_lines.colon_suffix_chance ? `${text}:` : text;
 
     document.querySelectorAll('.trade-list-detail-offer').forEach(offer => {
-        if (Math.random() > 0.3) return;
+        if (Math.random() > config.robux_lines.duplicate_line_chance) return;
 
         if (offer.querySelector('.robux-line.total-rap')) return;
 

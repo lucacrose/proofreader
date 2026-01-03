@@ -18,13 +18,11 @@ from core.config import (
     AUGMENTER_PATH, 
     DATASET_ROOT, 
     TEMPLATE_FILES, 
+    AUGMENTER_CONFIG, 
     setup_dataset_directories
 )
 
-def generate_random_username():
-    length = random.randint(3, 20)
-    chars = string.ascii_letters + string.digits + "_"
-    return "".join(random.choice(chars) for _ in range(length))
+GENERATOR_CONFIG = AUGMENTER_CONFIG["generator"]
 
 def worker_task(task_id, db, backgrounds_count):
     try:
@@ -37,18 +35,14 @@ def worker_task(task_id, db, backgrounds_count):
         lbl_dir.mkdir(parents=True, exist_ok=True)
 
         trade_input = [[], []]
-        is_empty_trade = random.random() < 0.09
+        is_empty_trade = random.random() < GENERATOR_CONFIG["empty_trade_chance"]
 
         if not is_empty_trade:
             for side in [0, 1]:
                 num_items = random.randint(0, 4)
                 for _ in range(num_items):
                     item = random.choice(db)
-                    trade_input[side].append({
-                        "id": item["id"],
-                        "name": item["name"],
-                        "img": f"../../../assets/thumbnails/{item['id']}.png"
-                    })
+                    trade_input[side].append(f"../../../assets/thumbnails/{item['id']}.png")
         
         with open(AUGMENTER_PATH, 'r', encoding="utf-8") as f:
             augmenter_js = f.read()
@@ -56,10 +50,10 @@ def worker_task(task_id, db, backgrounds_count):
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
 
-            aspect_ratio = random.uniform(1.0, 2.4)
-            width = random.randint(800, 2560)
+            aspect_ratio = random.uniform(GENERATOR_CONFIG["aspect_ratio_min"], GENERATOR_CONFIG["aspect_ratio_max"])
+            width = random.randint(GENERATOR_CONFIG["width_min"], GENERATOR_CONFIG["width_max"])
             height = int(width / aspect_ratio)
-            height = max(400, min(height, 1600))
+            height = max(GENERATOR_CONFIG["height_min"], min(height, GENERATOR_CONFIG["height_max"]))
             
             context = browser.new_context(viewport={"width": width, "height": height})
             page = context.new_page()
@@ -67,8 +61,7 @@ def worker_task(task_id, db, backgrounds_count):
             random_file = random.choice(TEMPLATE_FILES)
             page.goto(f"file://{Path(random_file).absolute()}")
 
-            user_meta = {"display": generate_random_username(), "handle": generate_random_username()}
-            page.evaluate(augmenter_js, [trade_input, user_meta, is_empty_trade, backgrounds_count])
+            page.evaluate(augmenter_js, [trade_input, is_empty_trade, backgrounds_count, AUGMENTER_CONFIG])
 
             def get_padded_yolo(element, class_id, pad_px=2):
                 box = element.bounding_box()
@@ -155,7 +148,7 @@ def worker_task(task_id, db, backgrounds_count):
         print(f"Error generating task {task_id}:")
         traceback.print_exc()
 
-def run_mass_generation(total_images=64, max_workers=4):
+def run_mass_generation(total_images=GENERATOR_CONFIG["total_images"], max_workers=GENERATOR_CONFIG["max_workers"]):
     db_path = TEMPLATES_DIR.parent.parent.parent / "assets" / "db.json"
 
     if not db_path.exists():
@@ -177,4 +170,4 @@ def run_mass_generation(total_images=64, max_workers=4):
             pass
 
 if __name__ == "__main__":
-    run_mass_generation(total_images=64, max_workers=8)
+    run_mass_generation(total_images=16, max_workers=8)
