@@ -4,7 +4,7 @@ from pathlib import Path
 
 # --- BASE PATHS ---
 # Resolves to the 'proofreader' root directory
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # --- ASSETS & MODELS ---
 ASSETS_PATH = BASE_DIR / "assets"
@@ -14,12 +14,13 @@ CACHE_PATH = ASSETS_PATH / "embedding_bank.pt"
 THUMBNAILS_DIR = ASSETS_PATH / "thumbnails"
 
 # --- TRAINING & EMULATOR ---
-TRAIN_DIR = BASE_DIR / "train"
+TRAIN_DIR = BASE_DIR / "proofreader" / "train"
 DATA_YAML_PATH = TRAIN_DIR / "config" / "data.yaml"
 DATASET_ROOT = TRAIN_DIR / "dataset"
 
 EMULATOR_DIR = TRAIN_DIR / "emulator"
 TEMPLATES_DIR = EMULATOR_DIR / "templates"
+BACKGROUNDS_DIR = EMULATOR_DIR / "backgrounds"
 AUGMENTER_PATH = EMULATOR_DIR / "augmenter.js"
 DEFAULT_TEMPLATE = TEMPLATES_DIR / "trade_ui.html"
 

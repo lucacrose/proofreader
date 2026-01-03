@@ -3,7 +3,7 @@ import numpy as np
 import cv2
 from PIL import Image
 from typing import Dict, List, Any
-from core.schema import TradeLayout
+from .schema import TradeLayout
 
 class VisualMatcher:
     def __init__(self, embedding_bank: Dict[str, np.ndarray], item_db: List[dict], clip_processor: Any, clip_model: Any, device: str = "cuda"):

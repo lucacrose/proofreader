@@ -1,5 +1,5 @@
 from ultralytics import YOLO
-from core.config import TRAINING_CONFIG
+from ..core.config import TRAINING_CONFIG
 
 def train_model():
     model = YOLO("yolo11n.pt")

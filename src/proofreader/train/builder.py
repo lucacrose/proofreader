@@ -2,7 +2,7 @@ import os
 import json
 import torch
 from PIL import Image
-from core.config import DB_PATH, CACHE_PATH, ASSETS_DIR
+from ..core.config import DB_PATH, CACHE_PATH, ASSETS_PATH
 
 class EmbeddingBuilder:
     def __init__(self, model, processor):
@@ -17,7 +17,7 @@ class EmbeddingBuilder:
 
     def build(self):
         print(f"Starting build process...")
-        print(f"Source Images: {ASSETS_DIR}")
+        print(f"Source Images: {ASSETS_PATH}")
         print(f"Item Database: {DB_PATH}")
         
         if not os.path.exists(DB_PATH):
@@ -30,11 +30,11 @@ class EmbeddingBuilder:
         embedding_bank = {}
         item_names = []
         
-        if not os.path.exists(ASSETS_DIR):
-            print(f"Error: Image directory {ASSETS_DIR} not found.")
+        if not os.path.exists(ASSETS_PATH):
+            print(f"Error: Image directory {ASSETS_PATH} not found.")
             return
 
-        image_files = [f for f in os.listdir(ASSETS_DIR) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+        image_files = [f for f in os.listdir(ASSETS_PATH) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
         total_files = len(image_files)
         
         print(f"Found {total_files} images to process.")
@@ -46,7 +46,7 @@ class EmbeddingBuilder:
             
             if item_info:
                 name = item_info["name"]
-                img_path = os.path.join(ASSETS_DIR, filename)
+                img_path = os.path.join(ASSETS_PATH, filename)
                 
                 try:
                     img = Image.open(img_path).convert("RGB")

@@ -3,12 +3,12 @@ import cv2
 import torch
 import json
 from transformers import CLIPProcessor, CLIPModel
-from core.detector import TradeDetector
-from core.resolver import SpatialResolver
-from core.ocr import OCRReader
-from core.matcher import VisualMatcher
-from train.builder import EmbeddingBuilder
-from core.config import DB_PATH, CACHE_PATH, MODEL_PATH, DEVICE
+from .detector import TradeDetector
+from .resolver import SpatialResolver
+from .ocr import OCRReader
+from .matcher import VisualMatcher
+from ..train.builder import EmbeddingBuilder
+from .config import DB_PATH, CACHE_PATH, MODEL_PATH, DEVICE
 
 class TradeEngine:
     def __init__(self):
@@ -57,3 +57,7 @@ class TradeEngine:
         self.matcher.match_item_visuals(image, layout)
 
         return layout.to_dict()
+
+def get_trade_data(image_path: str, conf_threshold: float = 0.25):
+    engine = TradeEngine()
+    return engine.process_image(image_path, conf_threshold)

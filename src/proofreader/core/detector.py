@@ -1,6 +1,6 @@
 from typing import List
 from ultralytics.models import YOLO
-from core.schema import Box
+from .schema import Box
 
 class TradeDetector:
     def __init__(self, model_path: str):

@@ -2,7 +2,7 @@ import cv2
 import easyocr
 import numpy as np
 import re
-from core.schema import Box, TradeLayout, TradeSide
+from .schema import Box, TradeLayout, TradeSide
 
 class OCRReader:
     def __init__(self, languages=['en'], gpu=True):

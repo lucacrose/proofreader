@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "proofreader"
+version = "0.1.0"
+description = "Visual trade detection and OCR engine"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "easyocr==1.7.2",
+    "ultralytics==8.3.243",
+    "torch==2.9.1",
+    "transformers==4.57.3",
+    "opencv-python",
+    "pillow",
+    "playwright"
+]
+
+[tool.setuptools]
+# This explicitly tells setuptools where your code lives
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+# This tells it to look inside the 'src' folder for the 'proofreader' package
+where = ["src"]
+include = ["proofreader*"]

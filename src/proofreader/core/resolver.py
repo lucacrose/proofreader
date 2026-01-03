@@ -1,5 +1,5 @@
 from typing import List
-from core.schema import Box, ResolvedItem, ResolvedRobux, TradeLayout
+from .schema import Box, ResolvedItem, ResolvedRobux, TradeLayout
 
 class SpatialResolver:
     def __init__(self):

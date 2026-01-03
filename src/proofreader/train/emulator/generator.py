@@ -1,6 +1,5 @@
 import json
 import random
-import string
 import concurrent.futures
 import sys
 import traceback
@@ -13,12 +12,13 @@ import numpy as np
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
-from core.config import (
-    TEMPLATES_DIR, 
+from proofreader.core.config import (
     AUGMENTER_PATH, 
     DATASET_ROOT, 
     TEMPLATE_FILES, 
     AUGMENTER_CONFIG, 
+    DB_PATH, 
+    BACKGROUNDS_DIR, 
     setup_dataset_directories
 )
 
@@ -26,7 +26,7 @@ GENERATOR_CONFIG = AUGMENTER_CONFIG["generator"]
 
 def worker_task(task_id, db, backgrounds_count):
     try:
-        split = "train" if random.random() < 0.8 else "val"
+        split = "train" if random.random() < GENERATOR_CONFIG["train_split_fraction"] else "val"
         output_name = f"trade_{task_id:05d}"
 
         img_dir = DATASET_ROOT / split / "images"
@@ -149,16 +149,10 @@ def worker_task(task_id, db, backgrounds_count):
         traceback.print_exc()
 
 def run_mass_generation(total_images=GENERATOR_CONFIG["total_images"], max_workers=GENERATOR_CONFIG["max_workers"]):
-    db_path = TEMPLATES_DIR.parent.parent.parent / "assets" / "db.json"
-
-    if not db_path.exists():
-        db_path = Path(__file__).parent.parent.parent / "assets" / "db.json"
-
-    with open(db_path, "r") as f:
+    with open(DB_PATH, "r") as f:
         db = json.load(f)
-
-    backgrounds_folder = Path("train/emulator/backgrounds")
-    backgrounds_count = len([f for f in backgrounds_folder.iterdir() if f.is_file()]) - 1
+    
+    backgrounds_count = len([f for f in BACKGROUNDS_DIR.iterdir() if f.is_file()]) - 1
 
     setup_dataset_directories(force_reset=True)
 

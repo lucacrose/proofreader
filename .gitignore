@@ -37,17 +37,19 @@ venv/
 old/
 
 # Local
-assets/thumbnails/*
-!assets/thumbnails/.gitkeep
-assets/weights/*
-!assets/weights/.gitkeep
-assets/db.json
-assets/embedding_bank.pt
+src/assets/thumbnails/*
+!src/assets/thumbnails/.gitkeep
+src/assets/weights/*
+!src/assets/weights/.gitkeep
+src/assets/db.json
+src/assets/embedding_bank.pt
 
-train/emulator/backgrounds/*
-!train/emulator/backgrounds/.gitkeep
-train/emulator/templates/*
-!train/emulator/templates/.gitkeep
-train/dataset
+src/proofreader/train/emulator/backgrounds/*
+!src/proofreader/train/emulator/backgrounds/.gitkeep
+src/proofreader/train/emulator/templates/*
+!src/proofreader/train/emulator/templates/.gitkeep
+src/proofreader/train/dataset
 
 test.png
+
+*.egg-info/
