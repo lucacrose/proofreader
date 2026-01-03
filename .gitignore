@@ -37,7 +37,12 @@ venv/
 old/
 
 # Local
-assets/
+assets/thumbnails/*
+!assets/thumbnails/.gitkeep
+assets/weights/*
+!assets/weights/.gitkeep
+assets/db.json
+assets/embedding_bank.pt
 
 train/emulator/backgrounds/*
 !train/emulator/backgrounds/.gitkeep
