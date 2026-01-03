@@ -8,11 +8,11 @@ from core.resolver import SpatialResolver
 from core.ocr import OCRReader
 from core.matcher import VisualMatcher
 from train.builder import EmbeddingBuilder
-from core.config import DB_PATH, CACHE_PATH, MODEL_PATH
+from core.config import DB_PATH, CACHE_PATH, MODEL_PATH, DEVICE
 
 class TradeEngine:
-    def __init__(self, device: str = None):
-        self.device = device if device else "cuda" if torch.cuda.is_available() else "cpu"
+    def __init__(self):
+        self.device = DEVICE
 
         self.clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(self.device)
         self.clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32", use_fast=True)

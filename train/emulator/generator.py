@@ -10,9 +10,10 @@ from tqdm import tqdm
 import cv2
 import numpy as np
 
-sys.path.append(str(Path(__file__).parent))
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(ROOT_DIR))
 
-from config import (
+from core.config import (
     TEMPLATES_DIR, 
     AUGMENTER_PATH, 
     DATASET_ROOT, 
@@ -25,7 +26,7 @@ def generate_random_username():
     chars = string.ascii_letters + string.digits + "_"
     return "".join(random.choice(chars) for _ in range(length))
 
-def worker_task(task_id, db):
+def worker_task(task_id, db, backgrounds_count):
     try:
         split = "train" if random.random() < 0.8 else "val"
         output_name = f"trade_{task_id:05d}"
@@ -67,7 +68,7 @@ def worker_task(task_id, db):
             page.goto(f"file://{Path(random_file).absolute()}")
 
             user_meta = {"display": generate_random_username(), "handle": generate_random_username()}
-            page.evaluate(augmenter_js, [trade_input, user_meta, is_empty_trade])
+            page.evaluate(augmenter_js, [trade_input, user_meta, is_empty_trade, backgrounds_count])
 
             def get_padded_yolo(element, class_id, pad_px=2):
                 box = element.bounding_box()
@@ -163,12 +164,15 @@ def run_mass_generation(total_images=64, max_workers=4):
     with open(db_path, "r") as f:
         db = json.load(f)
 
-    setup_dataset_directories()
+    backgrounds_folder = Path("train/emulator/backgrounds")
+    backgrounds_count = len([f for f in backgrounds_folder.iterdir() if f.is_file()]) - 1
+
+    setup_dataset_directories(force_reset=True)
 
     print(f"Starting generation of {total_images} images using {max_workers} processes...")
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
-        futures = [executor.submit(worker_task, i, db) for i in range(total_images)]
+        futures = [executor.submit(worker_task, i, db, backgrounds_count) for i in range(total_images)]
         for _ in tqdm(concurrent.futures.as_completed(futures), total=total_images):
             pass
 

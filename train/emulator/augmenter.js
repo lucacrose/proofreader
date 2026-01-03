@@ -1,4 +1,4 @@
-([newItems, userData, is_empty_trade]) => {
+([newItems, userData, is_empty_trade, backgrounds_count]) => {
     function getRandomInt(min, max) {
         min = Math.ceil(min);
         max = Math.floor(max);
@@ -20,9 +20,7 @@
         return `rgba(${r}, ${g}, ${b}, ${a})`;
     }
 
-    const totalBackgrounds = 100;
-
-    const randomIndex = Math.floor(Math.random() * totalBackgrounds) + 1;
+    const randomIndex = Math.floor(Math.random() * backgrounds_count) + 1;
 
     const paddedIndex = String(randomIndex).padStart(3, '0');
 
