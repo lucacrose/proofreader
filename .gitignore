@@ -38,3 +38,7 @@ old/
 
 # Local
 assets/
+
+train/emulator/backgrounds/*
+train/emulator/templates/*
+train/dataset
