@@ -40,5 +40,7 @@ old/
 assets/
 
 train/emulator/backgrounds/*
+!train/emulator/backgrounds/.gitkeep
 train/emulator/templates/*
+!train/emulator/templates/.gitkeep
 train/dataset
