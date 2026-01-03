@@ -49,3 +49,5 @@ train/emulator/backgrounds/*
 train/emulator/templates/*
 !train/emulator/templates/.gitkeep
 train/dataset
+
+test.png
