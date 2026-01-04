@@ -78,7 +78,3 @@ class TradeEngine:
         self.matcher.match_item_visuals(image, layout)
 
         return layout.to_dict()
-
-def get_trade_data(image_path: str, conf_threshold: float = 0.25):
-    engine = TradeEngine()
-    return engine.process_image(image_path, conf_threshold)
