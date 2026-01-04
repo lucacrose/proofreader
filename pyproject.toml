@@ -8,6 +8,7 @@ version = "1.0.0"
 description = "Visual trade detection and OCR engine"
 readme = "README.md"
 requires-python = ">=3.12"
+license = {text = "MIT"}
 dependencies = [
     "easyocr>=1.7.0",
     "numpy>=1.24.0",
@@ -23,10 +24,8 @@ dependencies = [
 ]
 
 [tool.setuptools]
-# This explicitly tells setuptools where your code lives
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
-# This tells it to look inside the 'src' folder for the 'proofreader' package
 where = ["src"]
 include = ["proofreader*"]
