@@ -80,6 +80,8 @@ AUGMENTER_CONFIG = {
     }
 }
 
+FUZZY_MATCH_CONFIDENCE_THRESHOLD = 60.0
+
 # --- HARDWARE SETTINGS ---
 # Automatically detects if a GPU is available for faster training
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"

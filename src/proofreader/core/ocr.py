@@ -19,7 +19,7 @@ class OCRReader:
     def __init__(self, languages=['en'], gpu=True):
         self.reader = easyocr.Reader(languages, gpu=gpu)
 
-    def _fuzzy_match_name(self, raw_text: str, threshold: float = 60.0) -> str:
+    def _fuzzy_match_name(self, raw_text: str, threshold: float = FUZZY_MATCH_CONFIDENCE_THRESHOLD) -> str:
         if not raw_text or len(raw_text) < 2:
             return raw_text
         
