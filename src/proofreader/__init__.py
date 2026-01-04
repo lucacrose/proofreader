@@ -1,5 +1,12 @@
-# This file tells Python what the 'proofreader' module contains
-from .core.engine import get_trade_data
+from .core.engine import TradeEngine
 
-# This makes it accessible as proofreader.get_trade_data
+_engine = None
+
+def get_trade_data(image_path: str, conf_threshold: float = 0.25):
+    global _engine
+    if _engine is None:
+        _engine = TradeEngine()
+    
+    return _engine.process_image(image_path, conf_threshold)
+
 __all__ = ["get_trade_data"]
