@@ -80,19 +80,24 @@ AUGMENTER_CONFIG = {
     }
 }
 
-# OCR Settings
-OCR_LANGUAGES = ['en']
-OCR_USE_GPU = True
-
 # Robustness Thresholds
 FUZZY_MATCH_CONFIDENCE_THRESHOLD = 60.0
 VISUAL_MATCH_THRESHOLD = 0.88
 
 # --- HARDWARE SETTINGS ---
 # Automatically detects if a GPU is available for faster training
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+if torch.cuda.is_available():
+    DEVICE = "cuda"
+elif torch.backends.mps.is_available():
+    DEVICE = "mps"
+else:
+    DEVICE = "cpu"
 
 BUILDER_BATCH_SIZE = 32
+
+# OCR Settings
+OCR_LANGUAGES = ['en']
+OCR_USE_GPU = (DEVICE == "cuda" or DEVICE == "mps")
 
 # --- DYNAMIC ASSETS ---
 # Resolve template files once during import
