@@ -2,20 +2,15 @@ import os
 import cv2
 import torch
 import json
-from transformers import CLIPProcessor, CLIPModel
 from .detector import TradeDetector
 from .resolver import SpatialResolver
 from .ocr import OCRReader
 from .matcher import VisualMatcher
-from ..train.builder import EmbeddingBuilder
 from .config import DB_PATH, CACHE_PATH, MODEL_PATH, DEVICE
 
 class TradeEngine:
     def __init__(self):
         self.device = DEVICE
-
-        self.clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(self.device)
-        self.clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32", use_fast=True)
         
         with open(DB_PATH, "r") as f:
             item_db = json.load(f)
@@ -35,13 +30,6 @@ class TradeEngine:
             clip_model=self.clip_model,
             device=self.device
         )
-
-        self.builder = EmbeddingBuilder(self.clip_model, self.clip_processor)
-
-        if not os.path.exists(CACHE_PATH):
-            self.builder.build()
-        elif os.path.getmtime(DB_PATH) > os.path.getmtime(CACHE_PATH):
-            self.builder.build()
 
     def process_image(self, image_path: str, conf_threshold: float) -> dict:
         if not os.path.exists(image_path):

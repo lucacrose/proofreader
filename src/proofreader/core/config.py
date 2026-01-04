@@ -84,6 +84,8 @@ AUGMENTER_CONFIG = {
 # Automatically detects if a GPU is available for faster training
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
+BUILDER_BATCH_SIZE = 32
+
 # --- DYNAMIC ASSETS ---
 # Resolve template files once during import
 if TEMPLATES_DIR.exists():

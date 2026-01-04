@@ -1,7 +1,11 @@
 import requests
 import json
-from pathlib import Path
-from proofreader.core.config import THUMBNAILS_DIR, DB_PATH
+import os
+from transformers import CLIPProcessor, CLIPModel
+from proofreader.core.config import THUMBNAILS_DIR, DB_PATH, CACHE_PATH, DEVICE
+from proofreader.train.builder import EmbeddingBuilder
+
+embedding_builder = EmbeddingBuilder(CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(DEVICE), CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32", use_fast=True))
 
 THUMBNAILS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -74,5 +78,10 @@ if __name__ == "__main__":
     save_database(all_items)
 
     download_thumbnails(all_items.keys())
+
+    if not os.path.exists(CACHE_PATH):
+            embedding_builder.build()
+    elif os.path.getmtime(THUMBNAILS_DIR) > os.path.getmtime(CACHE_PATH):
+        embedding_builder.build()
     
     print("Setup Complete! Your repo is now populated with data assets.")

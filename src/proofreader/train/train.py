@@ -1,11 +1,11 @@
 from ultralytics import YOLO
-from ..core.config import TRAINING_CONFIG
+from ..core.config import TRAINING_CONFIG, DATA_YAML_PATH
 
 def train_model():
     model = YOLO("yolo11n.pt")
 
     model.train(
-        data = "train/config/data.yaml",
+        data = DATA_YAML_PATH,
         epochs = TRAINING_CONFIG["epochs"],
         imgsz = TRAINING_CONFIG["img_size"],
         device = 0,
@@ -31,7 +31,7 @@ def finish_training(file_path):
     model = YOLO(file_path)
 
     model.train(
-        data = "train/config/data.yaml",
+        data = DATA_YAML_PATH,
         epochs = 32,
         close_mosaic = 32,
         patience = 20,
