@@ -1,9 +1,17 @@
-![Trade Detection Demo](./docs/assets/trade_id_example.png)
+# Proofreader 🔍
+![Python](https://img.shields.io/badge/python-3.12-blue.svg)
+![YOLOv11](https://img.shields.io/badge/model-YOLOv11-green.svg)
+![License](https://img.shields.io/badge/license-MIT-red.svg)
 
-### Example Output
+## Example
+| Input Image | Detected UI Elements |
+|--------|-------|
+| ![](./docs/assets/trade_before.png) | ![](./docs/assets/trade_after.png) |
+
+### Output
 When a trade image is processed, the engine returns a structured JSON object:
 
-\`\`\`json
+```json
 {
     "outgoing": {
         "item_count": 4,
@@ -42,4 +50,17 @@ When a trade image is processed, the engine returns a structured JSON object:
         ]
     }
 }
-\`\`\`
+```
+
+### 💻 Quick Start
+You can process any trade image with just a few lines of code:
+
+```python
+import proofreader
+
+# Analyze the image
+data = proofreader.get_trade_data("test.png")
+
+# Print the result
+print(data)
+```
