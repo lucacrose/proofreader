@@ -80,7 +80,13 @@ AUGMENTER_CONFIG = {
     }
 }
 
+# OCR Settings
+OCR_LANGUAGES = ['en']
+OCR_USE_GPU = True
+
+# Robustness Thresholds
 FUZZY_MATCH_CONFIDENCE_THRESHOLD = 60.0
+VISUAL_MATCH_THRESHOLD = 0.88
 
 # --- HARDWARE SETTINGS ---
 # Automatically detects if a GPU is available for faster training

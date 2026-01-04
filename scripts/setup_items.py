@@ -10,7 +10,6 @@ embedding_builder = EmbeddingBuilder(CLIPModel.from_pretrained("openai/clip-vit-
 THUMBNAILS_DIR.mkdir(parents=True, exist_ok=True)
 
 def fetch_all_ids():
-    """Combines IDs from Rolimons and Roblox Catalog, removing overlaps."""
     unique_items = {}
 
     print("Fetching from Rolimons...")
@@ -43,10 +42,20 @@ def fetch_all_ids():
 
 def download_thumbnails(item_ids):
     id_list = list(item_ids)
-    print(f"Total unique items to process: {len(id_list)}")
+    
+    to_download = []
+    for target_id in id_list:
+        img_path = THUMBNAILS_DIR / f"{target_id}.png"
+        if not img_path.exists():
+            to_download.append(target_id)
+    
+    print(f"Total items: {len(id_list)} | Already have: {len(id_list) - len(to_download)} | To download: {len(to_download)}")
 
-    for i in range(0, len(id_list), 30):
-        batch = id_list[i : i + 30]
+    if not to_download:
+        return
+
+    for i in range(0, len(to_download), 30):
+        batch = to_download[i : i + 30]
         ids_str = ",".join(map(str, batch))
 
         thumb_url = f"https://thumbnails.roblox.com/v1/assets?assetIds={ids_str}&size=250x250&format=Png&isCircular=false"
@@ -67,7 +76,7 @@ def download_thumbnails(item_ids):
             print(f"Error in batch: {e}")
 
 def save_database(unique_items):
-    out = [{"id": k, "name": v} for k, v in unique_items.items()]
+    out = [{"id": int(k), "name": v} for k, v in unique_items.items()]
     with open(DB_PATH, "w") as f:
         json.dump(out, f, separators=(',', ':'))
     print(f"Database saved to {DB_PATH}")
