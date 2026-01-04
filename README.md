@@ -4,7 +4,7 @@ High-speed Roblox trade analyzer using **YOLOv11**, **CLIP**, and **EasyOCR** fo
 ![Python](https://img.shields.io/badge/python-3.12-blue.svg)
 ![YOLOv11](https://img.shields.io/badge/model-YOLOv11-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-red.svg)
-![PyPI](https://img.shields.io/pypi/v/rbx-proofreader?color=blue)
+![PyPI](https://img.shields.io/pypi/v/rbx-proofreader?color=blue&label=PyPI)
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
 
 ---
