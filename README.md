@@ -64,3 +64,10 @@ data = proofreader.get_trade_data("test.png")
 # Print the result
 print(data)
 ```
+
+### Installation
+For quick installation, simply run:
+
+```bash
+pip install rbx-proofreader
+```
