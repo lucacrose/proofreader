@@ -46,11 +46,7 @@ class TradeEngine:
             clip_processor=self.clip_processor,
             clip_model=self.clip_model,
             device=self.device
-        )
-
-    def _check_gpu_compatibility(self):
-        # Check if they have an NVIDIA card but Torch is blind to it
-        
+        ) 
 
     def _ensure_assets(self):
         BASE_URL = "https://github.com/lucacrose/proofreader/releases/latest/download"
