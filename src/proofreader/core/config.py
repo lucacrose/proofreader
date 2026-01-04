@@ -1,6 +1,7 @@
 import torch
 import shutil
 from pathlib import Path
+from ultralytics import settings
 
 # --- BASE PATHS ---
 # Resolves to the 'proofreader' root directory
@@ -136,6 +137,8 @@ def ensure_base_directories():
     ]
     for directory in required_dirs:
         directory.mkdir(parents=True, exist_ok=True)
+
+settings.update({'datasets_dir': str(DATA_YAML_PATH.parent)})
 
 # Run base setup on import
 ensure_base_directories()

@@ -3,4 +3,4 @@ from proofreader.train.train import train_model
 
 if __name__ == "__main__":
     run_mass_generation()
-    train_model()
+    train_model(0) # Change from 0 -> "cpu" if no CUDA devices

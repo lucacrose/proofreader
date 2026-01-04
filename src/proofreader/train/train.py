@@ -1,14 +1,14 @@
 from ultralytics import YOLO
 from ..core.config import TRAINING_CONFIG, DATA_YAML_PATH
 
-def train_model():
+def train_model(device):
     model = YOLO("yolo11n.pt")
 
     model.train(
         data = DATA_YAML_PATH,
         epochs = TRAINING_CONFIG["epochs"],
         imgsz = TRAINING_CONFIG["img_size"],
-        device = 0, # Change to "cpu" if no CUDA devices
+        device = device,
         plots = True,
         multi_scale = True,
 

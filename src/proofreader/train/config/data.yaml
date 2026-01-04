@@ -1,4 +1,3 @@
-path: ./src/proofreader/train/dataset
 train: train/images
 val: val/images
 
