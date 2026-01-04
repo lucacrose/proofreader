@@ -9,13 +9,17 @@ description = "Visual trade detection and OCR engine"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "easyocr==1.7.2",
-    "ultralytics==8.3.243",
-    "torch==2.9.1",
-    "transformers==4.57.3",
-    "opencv-python",
-    "pillow",
-    "playwright"
+    "easyocr>=1.7.0",
+    "numpy>=1.24.0",
+    "opencv-python>=4.8.0",
+    "Pillow>=10.0.0",
+    "playwright>=1.40.0",
+    "rapidfuzz>=3.0.0",
+    "requests>=2.31.0",
+    "torch>=2.0.0",
+    "tqdm>=4.66.0",
+    "transformers>=4.30.0",
+    "ultralytics>=8.0.0"
 ]
 
 [tool.setuptools]
