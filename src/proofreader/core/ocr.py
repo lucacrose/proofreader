@@ -7,17 +7,17 @@ from rapidfuzz import process, utils
 from .schema import Box, TradeLayout, TradeSide
 from proofreader.core.config import DB_PATH, FUZZY_MATCH_CONFIDENCE_THRESHOLD, OCR_LANGUAGES, OCR_USE_GPU
 
-with open(DB_PATH, "r", encoding="utf-8") as f:
-    item_list = json.load(f)
-
-item_names = []
-
-for item in item_list:
-    item_names.append(item["name"])
-
 class OCRReader:
     def __init__(self, languages=OCR_LANGUAGES, gpu=OCR_USE_GPU):
         self.reader = easyocr.Reader(languages, gpu=gpu)
+
+        with open(DB_PATH, "r", encoding="utf-8") as f:
+            item_list = json.load(f)
+
+        self.item_names = []
+
+        for item in item_list:
+            self.item_names.append(item["name"])
 
     def _fuzzy_match_name(self, raw_text: str, threshold: float = FUZZY_MATCH_CONFIDENCE_THRESHOLD) -> str:
         if not raw_text or len(raw_text) < 2:
@@ -25,7 +25,7 @@ class OCRReader:
         
         match = process.extractOne(
             raw_text, 
-            item_names, 
+            self.item_names, 
             processor=utils.default_process
         )
 
