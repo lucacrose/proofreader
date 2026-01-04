@@ -149,6 +149,25 @@ def worker_task(task_id, db, backgrounds_count):
         traceback.print_exc()
 
 def run_mass_generation(total_images=GENERATOR_CONFIG["total_images"], max_workers=GENERATOR_CONFIG["max_workers"]):
+    bg_files = [f for f in BACKGROUNDS_DIR.iterdir() if f.is_file() and f.name != ".gitkeep"]
+    if not bg_files:
+        print(f"❌ ERROR: No background images found in {BACKGROUNDS_DIR}")
+        print("Please add background images (JPG/PNG) to the folder before running.")
+        return
+    
+    valid_templates = [
+        t for t in TEMPLATE_FILES 
+        if Path(t).exists() and Path(t).name != ".gitkeep"
+    ]
+    if not valid_templates:
+        print(f"❌ ERROR: No valid HTML templates found. Checked: {TEMPLATE_FILES}")
+        print("Ensure your template files exist and are not just .gitkeep placeholders.")
+        return
+    
+    if not DB_PATH.exists():
+        print(f"❌ ERROR: Item database missing at {DB_PATH}")
+        return
+    
     with open(DB_PATH, "r") as f:
         db = json.load(f)
     
