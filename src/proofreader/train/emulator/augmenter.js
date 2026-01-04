@@ -51,8 +51,7 @@
     }
 
     const randomIndex = getRandomInt(0, backgrounds_count - 1);
-    const paddedIndex = String(randomIndex).padStart(3, '0');
-    const randomBgUrl = `url('../backgrounds/unsplash_${paddedIndex}.jpg')`;
+    const randomBgUrl = `url('../backgrounds/background_${randomIndex}.jpg')`;
 
     if (Math.random() < config.background.chance) {
         const container = document.querySelector(".container-main");

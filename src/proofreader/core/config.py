@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # --- ASSETS & MODELS ---
 ASSETS_PATH = BASE_DIR / "assets"
-MODEL_PATH = ASSETS_PATH / "weights" / "yolo_v1.pt"
+MODEL_PATH = ASSETS_PATH / "weights" / "yolo.pt"
 DB_PATH = ASSETS_PATH / "db.json"
 CACHE_PATH = ASSETS_PATH / "embedding_bank.pt"
 THUMBNAILS_DIR = ASSETS_PATH / "thumbnails"

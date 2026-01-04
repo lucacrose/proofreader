@@ -1,4 +1,4 @@
-from .core.engine import TradeEngine
+from .main import TradeEngine
 
 _engine = None
 
