@@ -1,7 +1,10 @@
 import requests
 import json
 import os
+from tqdm import tqdm
 from transformers import CLIPProcessor, CLIPModel
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 from proofreader.core.config import THUMBNAILS_DIR, DB_PATH, CACHE_PATH, DEVICE
 from proofreader.train.builder import EmbeddingBuilder
 
@@ -40,40 +43,50 @@ def fetch_all_ids():
 
     return unique_items
 
+def _download_single_image(thumb, pbar):
+    target_id = thumb["targetId"]
+    img_url = thumb["imageUrl"]
+    img_path = THUMBNAILS_DIR / f"{target_id}.png"
+    
+    if not img_path.exists() and thumb.get("state") == "Completed":
+        try:
+            img_data = requests.get(img_url, timeout=10).content
+            with open(img_path, "wb") as f:
+                f.write(img_data)
+        except Exception:
+            pass
+    
+    pbar.update(1)
+
 def download_thumbnails(item_ids):
     id_list = list(item_ids)
+    to_download = [tid for tid in id_list if not (THUMBNAILS_DIR / f"{tid}.png").exists()]
     
-    to_download = []
-    for target_id in id_list:
-        img_path = THUMBNAILS_DIR / f"{target_id}.png"
-        if not img_path.exists():
-            to_download.append(target_id)
-    
-    print(f"Total items: {len(id_list)} | Already have: {len(id_list) - len(to_download)} | To download: {len(to_download)}")
-
     if not to_download:
+        print("✅ All thumbnails already exist.")
         return
+    
+    all_thumbs = []
+    print(f"📡 Fetching metadata for {len(to_download)} items...")
 
-    for i in range(0, len(to_download), 30):
-        batch = to_download[i : i + 30]
+    for i in tqdm(range(0, len(to_download), 100), desc="Metadata"):
+        batch = to_download[i : i + 100]
         ids_str = ",".join(map(str, batch))
-
-        thumb_url = f"https://thumbnails.roblox.com/v1/assets?assetIds={ids_str}&size=250x250&format=Png&isCircular=false"
+        url = f"https://thumbnails.roblox.com/v1/assets?assetIds={ids_str}&size=250x250&format=Png&isCircular=false"
+        
         try:
-            resp = requests.get(thumb_url).json()
-            for thumb in resp.get("data", []):
-                target_id = thumb["targetId"]
-                img_url = thumb["imageUrl"]
-
-                img_path = THUMBNAILS_DIR / f"{target_id}.png"
-                if not img_path.exists() and thumb["state"] == "Completed":
-                    img_data = requests.get(img_url).content
-                    with open(img_path, "wb") as f:
-                        f.write(img_data)
-            
-            print(f"Processed batch {i//30 + 1}/{(len(id_list)//30)+1}")
+            resp = requests.get(url).json()
+            all_thumbs.extend(resp.get("data", []))
         except Exception as e:
-            print(f"Error in batch: {e}")
+            print(f"Error: {e}")
+    
+    print(f"💾 Downloading {len(all_thumbs)} images...")
+
+    with tqdm(total=len(all_thumbs), desc="Downloading") as pbar:
+        with ThreadPoolExecutor(max_workers=15) as executor:
+            [executor.submit(_download_single_image, thumb, pbar) for thumb in all_thumbs]
+
+    print("✨ Finished!")
 
 def save_database(unique_items):
     out = [{"id": int(k), "name": v} for k, v in unique_items.items()]
