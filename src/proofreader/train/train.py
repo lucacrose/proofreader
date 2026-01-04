@@ -8,7 +8,7 @@ def train_model():
         data = DATA_YAML_PATH,
         epochs = TRAINING_CONFIG["epochs"],
         imgsz = TRAINING_CONFIG["img_size"],
-        device = 0,
+        device = 0, # Change to "cpu" if no CUDA devices
         plots = True,
         multi_scale = True,
 
@@ -37,7 +37,7 @@ def finish_training(file_path):
         patience = 20,
         imgsz = 640,
         batch = 24,
-        device = 0
+        device = 0 # Change to "cpu" if no CUDA devices
     )
 
 if __name__ == "__main__":
