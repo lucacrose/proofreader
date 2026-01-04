@@ -15,6 +15,15 @@ class TradeEngine:
     def __init__(self):
         self._ensure_assets()
 
+        if DEVICE == "cpu" and not torch.cuda.is_available():
+            import subprocess
+            try:
+                subprocess.check_output('nvidia-smi')
+                print("Detected NVIDIA GPU, but your current Torch installation is CPU-only.")
+                print("To fix this, run: pip install --force-reinstall torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128")
+            except:
+                pass
+
         self.device = DEVICE
 
         self.clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(self.device)
@@ -38,6 +47,10 @@ class TradeEngine:
             clip_model=self.clip_model,
             device=self.device
         )
+
+    def _check_gpu_compatibility(self):
+        # Check if they have an NVIDIA card but Torch is blind to it
+        
 
     def _ensure_assets(self):
         BASE_URL = "https://github.com/lucacrose/proofreader/releases/latest/download"
