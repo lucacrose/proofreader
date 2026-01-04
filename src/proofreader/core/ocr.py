@@ -2,11 +2,37 @@ import cv2
 import easyocr
 import numpy as np
 import re
+import json
+from rapidfuzz import process, utils
 from .schema import Box, TradeLayout, TradeSide
+from proofreader.core.config import DB_PATH
+
+with open(DB_PATH, "r", encoding="utf-8") as f:
+    item_list = json.load(f)
+
+item_names = []
+
+for item in item_list:
+    item_names.append(item["name"])
 
 class OCRReader:
     def __init__(self, languages=['en'], gpu=True):
         self.reader = easyocr.Reader(languages, gpu=gpu)
+
+    def _fuzzy_match_name(self, raw_text: str, threshold: float = 60.0) -> str:
+        if not raw_text or len(raw_text) < 2:
+            return raw_text
+        
+        match = process.extractOne(
+            raw_text, 
+            item_names, 
+            processor=utils.default_process
+        )
+
+        if match and match[1] >= threshold:
+            return match[0]
+        
+        return raw_text
 
     def _clean_robux_text(self, raw_text: str) -> int:
         cleaned = raw_text.upper().strip()
@@ -45,7 +71,8 @@ class OCRReader:
     def process_side(self, image: np.ndarray, side: TradeSide):
         for item in side.items:
             if item.name_box:
-                item.name = self._get_text_from_box(image, item.name_box)
+                raw_name = self._get_text_from_box(image, item.name_box)
+                item.name = self._fuzzy_match_name(raw_name)
 
         if side.robux and side.robux.value_box:
             raw_val = self._get_text_from_box(image, side.robux.value_box, is_robux=True)
