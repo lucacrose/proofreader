@@ -42,7 +42,7 @@ def worker_task(task_id, db, backgrounds_count):
                 num_items = random.randint(0, 4)
                 for _ in range(num_items):
                     item = random.choice(db)
-                    trade_input[side].append(f"../../../assets/thumbnails/{item['id']}.png")
+                    trade_input[side].append(f"../../../../assets/thumbnails/{item['id']}.png")
         
         with open(AUGMENTER_PATH, 'r', encoding="utf-8") as f:
             augmenter_js = f.read()
