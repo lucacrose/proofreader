@@ -2,17 +2,13 @@ import cv2
 import easyocr
 import numpy as np
 import re
-import json
 from rapidfuzz import process, utils
 from .schema import Box, TradeLayout, TradeSide
-from proofreader.core.config import DB_PATH, FUZZY_MATCH_CONFIDENCE_THRESHOLD, OCR_LANGUAGES, OCR_USE_GPU
+from proofreader.core.config import FUZZY_MATCH_CONFIDENCE_THRESHOLD, OCR_LANGUAGES, OCR_USE_GPU
 
 class OCRReader:
-    def __init__(self, languages=OCR_LANGUAGES, gpu=OCR_USE_GPU):
+    def __init__(self, item_list, languages=OCR_LANGUAGES, gpu=OCR_USE_GPU):
         self.reader = easyocr.Reader(languages, gpu=gpu)
-
-        with open(DB_PATH, "r", encoding="utf-8") as f:
-            item_list = json.load(f)
 
         self.item_names = []
 

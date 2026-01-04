@@ -29,7 +29,7 @@ class TradeEngine:
         self.detector = TradeDetector(MODEL_PATH)
         self.resolver = SpatialResolver()
         
-        self.reader = OCRReader(gpu=(self.device == "cuda"))
+        self.reader = OCRReader(item_db)
         
         self.matcher = VisualMatcher(
             embedding_bank=self.embeddings,
