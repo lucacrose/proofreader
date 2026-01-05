@@ -1,22 +1,8 @@
-# --- Large Data & Media ---
-# Thousands of scraped files from the downloader
-downloader/media/
-downloader/buffers/
-
-# Dataset files used for training
-train/dataset/
-generator/assets/
-
-# Site Templates
-generator/templates/
-
 # --- Model Weights & Training Artifacts ---
 # PyTorch weights and YOLO models
 *.pt
-embedding_bank.pt
-yolo11n.pt
 
-# YOLO/Ultralytics training runs
+# --- YOLO/Ultralytics training runs ---
 runs/
 
 # --- Debug & Temporary Files ---
@@ -32,11 +18,9 @@ __pycache__/
 *$py.class
 venv/
 .env
+*.egg-info/
 
-# Legacy
-old/
-
-# Local
+# --- Assets ---
 src/assets/thumbnails/*
 !src/assets/thumbnails/.gitkeep
 src/assets/weights/*
@@ -44,12 +28,9 @@ src/assets/weights/*
 src/assets/db.json
 src/assets/embedding_bank.pt
 
+# --- Training ---
 src/proofreader/train/emulator/backgrounds/*
 !src/proofreader/train/emulator/backgrounds/.gitkeep
 src/proofreader/train/emulator/templates/*
 !src/proofreader/train/emulator/templates/.gitkeep
 src/proofreader/train/dataset
-
-test.png
-
-*.egg-info/
