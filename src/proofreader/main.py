@@ -73,7 +73,7 @@ class TradeEngine:
                 f.write(chunk)
                 pbar.update(len(chunk))
 
-    def process_image(self, image_path: str, conf_threshold: float) -> dict:
+    def process_image(self, image_path: str, conf_threshold: float, results_per_item: int) -> dict:
         if not os.path.exists(image_path):
             raise FileNotFoundError(f"Image not found: {image_path}")
         

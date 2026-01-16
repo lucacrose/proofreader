@@ -1,11 +1,12 @@
 import requests
 import json
 import os
+import shutil
 from tqdm import tqdm
 from transformers import CLIPProcessor, CLIPModel
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import ThreadPoolExecutor
-from proofreader.core.config import THUMBNAILS_DIR, DB_PATH, CACHE_PATH, DEVICE
+from proofreader.core.config import THUMBNAILS_DIR, TRAIN_THUMBNAILS_DIR, DB_PATH, DEVICE
 from proofreader.train.builder import EmbeddingBuilder
 
 embedding_builder = EmbeddingBuilder(CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(DEVICE), CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32", use_fast=True))
@@ -72,7 +73,7 @@ def download_thumbnails(item_ids):
     for i in tqdm(range(0, len(to_download), 100), desc="Metadata"):
         batch = to_download[i : i + 100]
         ids_str = ",".join(map(str, batch))
-        url = f"https://thumbnails.roblox.com/v1/assets?assetIds={ids_str}&size=250x250&format=Png&isCircular=false"
+        url = f"https://thumbnails.roblox.com/v1/assets?assetIds={ids_str}&size=420x420&format=Png&isCircular=false"
         
         try:
             resp = requests.get(url).json()
@@ -94,16 +95,33 @@ def save_database(unique_items):
         json.dump(out, f, separators=(',', ':'))
     print(f"Database saved to {DB_PATH}")
 
+    return out
+
+def organize_files(id_to_name):
+    os.makedirs(TRAIN_THUMBNAILS_DIR, exist_ok=True)
+
+    for filename in os.listdir(THUMBNAILS_DIR):
+        if filename.endswith(".png"):
+            item_id = filename.split(".")[0]
+            if item_id in id_to_name:
+                class_folder = os.path.join(TRAIN_THUMBNAILS_DIR, item_id)
+                os.makedirs(class_folder, exist_ok=True)
+                shutil.copy(os.path.join(THUMBNAILS_DIR, filename), class_folder)
+
+    print(f"Organized images into {len(os.listdir(TRAIN_THUMBNAILS_DIR))} classes.")
+
 if __name__ == "__main__":
     all_items = fetch_all_ids()
 
-    save_database(all_items)
+    database = save_database(all_items)
+
+    organize_files(database)
 
     download_thumbnails(all_items.keys())
 
-    if not os.path.exists(CACHE_PATH):
-            embedding_builder.build()
-    elif os.path.getmtime(THUMBNAILS_DIR) > os.path.getmtime(CACHE_PATH):
-        embedding_builder.build()
+    #if not os.path.exists(CACHE_PATH):
+        #embedding_builder.build()
+    #elif os.path.getmtime(THUMBNAILS_DIR) > os.path.getmtime(CACHE_PATH):
+        #embedding_builder.build()
     
     print("Setup Complete! Your repo is now populated with data assets.")

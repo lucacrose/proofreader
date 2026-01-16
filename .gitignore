@@ -20,6 +20,9 @@ venv/
 .env
 *.egg-info/
 
+# --- Build ---
+build/*
+
 # --- Assets ---
 src/assets/thumbnails/*
 !src/assets/thumbnails/.gitkeep

@@ -12,6 +12,7 @@ MODEL_PATH = ASSETS_PATH / "weights" / "yolo.pt"
 DB_PATH = ASSETS_PATH / "db.json"
 CACHE_PATH = ASSETS_PATH / "embedding_bank.pt"
 THUMBNAILS_DIR = ASSETS_PATH / "thumbnails"
+TRAIN_THUMBNAILS_DIR = ASSETS_PATH / "train_data"
 
 # --- TRAINING & EMULATOR ---
 TRAIN_DIR = BASE_DIR / "proofreader" / "train"
