@@ -15,6 +15,14 @@ class ResolvedItem:
     thumb_box: Optional[Box] = None
     name_box: Optional[Box] = None
 
+    visual_id: int = -1
+    visual_conf: float = 0
+
+    text_name: str = ""
+    text_conf: float = 0
+
+    _finalized: bool = False
+
 @dataclass
 class ResolvedRobux:
     value: int = 0

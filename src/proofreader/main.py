@@ -10,7 +10,7 @@ from .core.resolver import SpatialResolver
 from .core.ocr import OCRReader
 from .core.matcher import VisualMatcher
 from .core.config import DB_PATH, MODEL_PATH, DEVICE, CLASS_MAP_PATH, CLIP_BEST_PATH
-import concurrent.futures
+from .core.schema import ResolvedItem
 
 class TradeEngine:
     def __init__(self):
@@ -78,6 +78,62 @@ class TradeEngine:
                 f.write(chunk)
                 pbar.update(len(chunk))
 
+    def _final_judge(self, item: ResolvedItem):
+        if getattr(item, "_finalized", False):
+            return
+        
+        # 1. Setup Evidence
+        v_id = item.visual_id
+        v_conf = item.visual_conf
+        
+        # Try direct mapping of OCR text to an ID
+        ocr_name_raw = item.text_name.lower().strip()
+        ocr_id_direct = self.matcher.name_to_id.get(ocr_name_raw)
+        ocr_conf = item.text_conf / 100.0 if item.text_conf > 1 else item.text_conf
+
+        # 2. AGREEMENT (The Easy Win)
+        # If they agree on the ID, sum their confidences.
+        if v_id != -1 and v_id == ocr_id_direct:
+            item.id = v_id
+            item.name = self.matcher.id_to_name.get(str(v_id))
+            return
+
+        # 3. HIGH CONFIDENCE INDIVIDUAL (The Specialist)
+        # If CLIP is very strong (>0.85) OR OCR is very strong (>0.85)
+        if v_conf > 0.85:
+            item.id = v_id
+            item.name = self.matcher.id_to_name.get(str(v_id))
+            return
+        
+        if ocr_conf > 0.85 and ocr_id_direct:
+            item.id = ocr_id_direct
+            item.name = self.matcher.id_to_name.get(str(ocr_id_direct))
+            return
+
+        # 4. THE FUZZY FALLBACK (The Rescue)
+        # If we get here, both signals are "blurry." We use fuzzy matching 
+        # to see if the OCR text is just a typo of a known item.
+        if len(ocr_name_raw) > 2:
+            fuzzy_name = self.reader._fuzzy_match_name(ocr_name_raw)
+            fuzzy_id = self.matcher.name_to_id.get(fuzzy_name.lower())
+            
+            if fuzzy_id:
+                item.id = int(fuzzy_id)
+                item.name = fuzzy_name
+                return
+
+        # 5. WEAK SIGNAL TIE-BREAKER
+        # If fuzzy failed, just pick the strongest of the two weak signals
+        if v_conf >= ocr_conf and v_id != -1:
+            item.id = v_id
+            item.name = self.matcher.id_to_name.get(str(v_id))
+        elif ocr_id_direct:
+            item.id = ocr_id_direct
+            item.name = self.matcher.id_to_name.get(str(ocr_id_direct))
+        else:
+            item.id = 0
+            item.name = "Unknown"
+
     def process_image(self, image_path: str, conf_threshold: float) -> dict:
         if not os.path.exists(image_path):
             raise FileNotFoundError(f"Image not found: {image_path}")
@@ -86,9 +142,25 @@ class TradeEngine:
         layout = self.resolver.resolve(boxes)
         image = cv2.imread(image_path)
 
-        self.reader.process_layout(image, layout)
+        # Visual matching first
         self.matcher.match_item_visuals(image, layout)
 
-        #print(layout)
+        # Pre-promote strong visual matches
+        for side in [layout.outgoing, layout.incoming]:
+            for item in side.items:
+                if item.visual_id != -1 and item.visual_conf >= 0.995:
+                    item.id = item.visual_id
+                    item.name = self.matcher.id_to_name.get(str(item.visual_id), "Unknown")
+                    item._finalized = True  # mark as locked
+
+        self.reader.process_layout(
+            image,
+            layout,
+            skip_if=lambda item: getattr(item, "_finalized", False)
+        )
+
+        for side in [layout.outgoing, layout.incoming]:
+            for item in side.items:
+                self._final_judge(item)
 
         return layout.to_dict()
