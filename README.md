@@ -73,16 +73,17 @@ pip install rbx-proofreader
 
 **1.** Clone the repository.
 
-**2.** Run `python scripts/setup_items.py` to initialize cache, download thumbnails, and create CLIP embeddings.
+**2.** Run `pip install -e ".[train]"`
 
-**3.** Place background images in: `src/proofreader/train/emulator/backgrounds`. Use continuous numbering: background_0.jpg, background_1.jpg, ...
+**3.** Run `python scripts/setup_items.py` to initialize the item database and download thumbnails.
 
-**4.** Place HTML templates in `src/proofreader/train/emulator/templates`. Include both light and dark theme templates.
+**4.** Place background JPEG images in: `src/proofreader/train/emulator/backgrounds`. Use continuous numbering: background_0.jpg, background_1.jpg, ...
 
-**5.** Configure synthetic data generation and YOLO training settings in `src/proofreader/core/config.py`
+**5.** Place HTML templates in `src/proofreader/train/emulator/templates`. Include both light and dark theme templates.
 
+**6.** Configure synthetic data generation and training settings in `src/proofreader/core/config.py`
 
-**6.** Run `python scripts/train_model.py`
+**7.** Run `python scripts/train_model.py` to train the YOLO and CLIP models.
 
 > Note: GPU recommended for training. Final model will be saved under `runs/trainX/weights/best.pt`. Rename to `yolo.pt` and move to `src/assets/weights`.
 

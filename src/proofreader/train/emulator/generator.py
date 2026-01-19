@@ -26,9 +26,6 @@ from proofreader.core.config import (
 GENERATOR_CONFIG = AUGMENTER_CONFIG["generator"]
 
 def process_batch(batch_ids, db, backgrounds_count, progress_counter):
-    """
-    Processes a chunk of images using a single browser instance.
-    """
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(

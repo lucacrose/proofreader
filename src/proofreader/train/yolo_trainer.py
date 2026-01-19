@@ -39,6 +39,3 @@ def finish_training(file_path, device):
         batch = TRAINING_CONFIG["batch_size"],
         device = device
     )
-
-if __name__ == "__main__":
-    train_yolo(0) # Change from 0 -> "cpu" if no CUDA devices

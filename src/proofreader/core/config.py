@@ -30,11 +30,11 @@ DEFAULT_TEMPLATE = TEMPLATES_DIR / "trade_ui.html"
 
 # --- HYPERPARAMETERS (Training Settings) ---
 TRAINING_CONFIG = {
-    "epochs": 100,             # Number of times the model sees the whole dataset
+    "epochs": 240,             # Number of times the model sees the whole dataset
     "batch_size": 16,          # Number of images processed at once
     "img_size": 640,           # Standard YOLO resolution
-    "patience": 10,            # Stop early if no improvement for 10 epochs
-    "close_mosaic_epochs": 10  # Disable mosaic augmentation for the last N epochs
+    "patience": 20,            # Stop early if no improvement for 20 epochs
+    "close_mosaic_epochs": 32  # Disable mosaic augmentation for the last N epochs
 }
 
 # --- AUGMENTER PROBABILITIES AND GENERATOR SETTINGS ---
