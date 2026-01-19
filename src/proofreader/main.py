@@ -10,6 +10,7 @@ from .core.resolver import SpatialResolver
 from .core.ocr import OCRReader
 from .core.matcher import VisualMatcher
 from .core.config import DB_PATH, MODEL_PATH, DEVICE, CLASS_MAP_PATH, CLIP_BEST_PATH
+import concurrent.futures
 
 class TradeEngine:
     def __init__(self):
@@ -87,5 +88,7 @@ class TradeEngine:
 
         self.reader.process_layout(image, layout)
         self.matcher.match_item_visuals(image, layout)
+
+        #print(layout)
 
         return layout.to_dict()

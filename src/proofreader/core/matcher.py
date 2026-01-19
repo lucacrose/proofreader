@@ -97,7 +97,6 @@ class VisualMatcher:
             visual_conf = best_probs[i].item()
 
             # Logic: If confidence is high (> 99%) or OCR failed, trust the Visual ID
-            print(visual_match_id, visual_conf)
             if visual_conf >= similarity_threshold:
                 # Update the item object
                 item.id = int(visual_match_id)
