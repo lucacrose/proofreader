@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rbx-proofreader"
-version = "1.0.0"
+version = "1.1.0"
 description = "Visual trade detection and OCR engine"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -14,7 +14,6 @@ dependencies = [
     "numpy>=1.24.0",
     "opencv-python>=4.8.0",
     "Pillow>=10.0.0",
-    "playwright>=1.40.0",
     "rapidfuzz>=3.0.0",
     "requests>=2.31.0",
     "torch>=2.0.0",
@@ -22,6 +21,9 @@ dependencies = [
     "transformers>=4.30.0",
     "ultralytics>=8.0.0"
 ]
+
+[project.optional-dependencies]
+train = ["playwright>=1.40.0"]
 
 [tool.setuptools]
 package-dir = {"" = "src"}

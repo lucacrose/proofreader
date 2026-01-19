@@ -28,8 +28,8 @@ src/assets/thumbnails/*
 !src/assets/thumbnails/.gitkeep
 src/assets/weights/*
 !src/assets/weights/.gitkeep
-src/assets/db.json
-src/assets/embedding_bank.pt
+src/assets/item_database.json
+src/assets/class_mapping.json
 
 # --- Training ---
 src/proofreader/train/emulator/backgrounds/*

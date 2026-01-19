@@ -96,7 +96,7 @@ def train():
     
     # Save class mapping for inference later
     with open("class_mapping.json", "w") as f:
-        json.dump(full_dataset.class_to_idx, f)
+        json.dump(full_dataset.class_to_idx, f, separators=(",", ":"))
 
     train_size = int(0.95 * len(full_dataset))
     train_dataset, val_dataset = torch.utils.data.random_split(full_dataset, [train_size, len(full_dataset)-train_size])
