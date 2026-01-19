@@ -5,6 +5,7 @@ from pathlib import Path
 # --- BASE PATHS ---
 # Resolves to the 'proofreader' root directory
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+BASE_URL = "https://github.com/lucacrose/proofreader/releases/latest/download"
 
 # --- ASSETS & MODELS ---
 ASSETS_PATH = BASE_DIR / "assets"
@@ -13,6 +14,8 @@ DB_PATH = ASSETS_PATH / "item_database.json"
 CACHE_PATH = ASSETS_PATH / "item_embeddings_bank.pt"
 THUMBNAILS_DIR = ASSETS_PATH / "thumbnails"
 TRAIN_THUMBNAILS_DIR = ASSETS_PATH / "train_data"
+CLASS_MAP_PATH = ASSETS_PATH / "class_mapping.json"
+CLIP_BEST_PATH = ASSETS_PATH / "weights" / "clip.pt"
 
 # --- TRAINING & EMULATOR ---
 TRAIN_DIR = BASE_DIR / "proofreader" / "train"
@@ -24,11 +27,6 @@ TEMPLATES_DIR = EMULATOR_DIR / "templates"
 BACKGROUNDS_DIR = EMULATOR_DIR / "backgrounds"
 AUGMENTER_PATH = EMULATOR_DIR / "augmenter.js"
 DEFAULT_TEMPLATE = TEMPLATES_DIR / "trade_ui.html"
-
-CLASS_MAP_PATH = ASSETS_PATH / "class_mapping.json"
-CLIP_BEST_PATH = ASSETS_PATH / "weights" / "clip.pt"
-
-BASE_URL = "https://github.com/lucacrose/proofreader/releases/latest/download"
 
 # --- HYPERPARAMETERS (Training Settings) ---
 TRAINING_CONFIG = {
@@ -88,6 +86,7 @@ AUGMENTER_CONFIG = {
 
 # Robustness Thresholds
 FUZZY_MATCH_CONFIDENCE_THRESHOLD = 60.0
+CERTAIN_VISUAL_CONF = 0.995
 
 # --- HARDWARE SETTINGS ---
 # Automatically detects if a GPU is available for faster training

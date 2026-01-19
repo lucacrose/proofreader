@@ -9,7 +9,7 @@ from .core.detector import TradeDetector
 from .core.resolver import SpatialResolver
 from .core.ocr import OCRReader
 from .core.matcher import VisualMatcher
-from .core.config import DB_PATH, MODEL_PATH, DEVICE, CLASS_MAP_PATH, CLIP_BEST_PATH, BASE_URL
+from .core.config import DB_PATH, MODEL_PATH, DEVICE, CLASS_MAP_PATH, CLIP_BEST_PATH, BASE_URL, CERTAIN_VISUAL_CONF
 from .core.schema import ResolvedItem
 
 class TradeEngine:
@@ -109,9 +109,6 @@ class TradeEngine:
         elif ocr_id_direct:
             item.id = ocr_id_direct
             item.name = self.matcher.id_to_name.get(str(ocr_id_direct))
-        else:
-            item.id = 0
-            item.name = "Unknown"
 
     def process_image(self, image_path: str, conf_threshold: float) -> dict:
         if not os.path.exists(image_path):
@@ -125,7 +122,7 @@ class TradeEngine:
 
         for side in [layout.outgoing, layout.incoming]:
             for item in side.items:
-                if item.visual_id != -1 and item.visual_conf >= 0.995:
+                if item.visual_id != -1 and item.visual_conf >= CERTAIN_VISUAL_CONF:
                     item.id = item.visual_id
                     item.name = self.matcher.id_to_name.get(str(item.visual_id), "Unknown")
                     item._finalized = True
