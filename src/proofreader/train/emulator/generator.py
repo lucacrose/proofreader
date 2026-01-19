@@ -86,6 +86,23 @@ def generate_single_image(page, task_id, db, backgrounds_count, augmenter_js):
     page.evaluate(f"document.body.style.zoom = '{zoom_factor}'")
     page.evaluate(augmenter_js, [trade_input, is_empty_trade, backgrounds_count, AUGMENTER_CONFIG])
 
+    page.evaluate("""
+        async () => {
+            const imgs = Array.from(document.querySelectorAll('img'));
+            const promises = imgs.map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = resolve; // Continue even if image fails
+                });
+            });
+            await Promise.all(promises);
+            
+            // Final safety: Wait for the browser to paint
+            await new Promise(r => requestAnimationFrame(r));
+        }
+    """)
+
     # 4. Bounding Box Logic (Keep your existing get_padded_yolo and is_fully_visible here)
     def get_padded_yolo(element, class_id, pad_px=2):
         box = element.bounding_box()
@@ -116,14 +133,29 @@ def generate_single_image(page, task_id, db, backgrounds_count, augmenter_js):
             if box:
                 # Calculate coords and crop
                 pad = 4
-                x1, y1 = int(box['x'] - pad), int(box['y'] - pad)
-                x2, y2 = int(box['x'] + box['width'] + pad), int(box['y'] + box['height'] + pad)
+                # Inside your crop loop
+                max_offset = 5  # pixels
+                off_x = random.randint(-max_offset, max_offset)
+                off_y = random.randint(-max_offset, max_offset)
+
+                x1, y1 = int(box['x'] - pad + off_x), int(box['y'] - pad + off_y)
+                x2, y2 = int(box['x'] + box['width'] + pad + off_x), int(box['y'] + box['height'] + pad + off_y)
                 if 0 <= x1 and 0 <= y1 and x2 <= width and y2 <= height:
                     crop = full_img[y1:y2, x1:x2]
                     if crop.size > 0:
                         class_dir = DATASET_ROOT / "classification" / item_id
                         class_dir.mkdir(parents=True, exist_ok=True)
-                        cv2.imwrite(str(class_dir / f"{output_name}_{i}.jpg"), crop)
+                        if random.random() < 0.3:
+                            brightness = random.uniform(0.7, 1.3)
+                            crop = cv2.convertScaleAbs(crop, alpha=brightness, beta=0)
+
+                        # 3. Subtle Blur
+                        if random.random() < 0.2:
+                            k_size = random.choice([3, 5])
+                            crop = cv2.GaussianBlur(crop, (k_size, k_size), 0)
+                        
+                        q = random.randint(70, 95)
+                        cv2.imwrite(str(class_dir / f"{output_name}_{i}.jpg"), crop, [int(cv2.IMWRITE_JPEG_QUALITY), q])
 
     # 7. In-Memory Augmentation
     if random.random() < 0.60:

@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 ASSETS_PATH = BASE_DIR / "assets"
 MODEL_PATH = ASSETS_PATH / "weights" / "yolo.pt"
 DB_PATH = ASSETS_PATH / "db.json"
-CACHE_PATH = ASSETS_PATH / "embedding_bank.pt"
+CACHE_PATH = ASSETS_PATH / "item_embeddings_bank.pt"#ASSETS_PATH / "embedding_bank.pt"
 THUMBNAILS_DIR = ASSETS_PATH / "thumbnails"
 TRAIN_THUMBNAILS_DIR = ASSETS_PATH / "train_data"
 
@@ -24,6 +24,9 @@ TEMPLATES_DIR = EMULATOR_DIR / "templates"
 BACKGROUNDS_DIR = EMULATOR_DIR / "backgrounds"
 AUGMENTER_PATH = EMULATOR_DIR / "augmenter.js"
 DEFAULT_TEMPLATE = TEMPLATES_DIR / "trade_ui.html"
+
+CLASS_MAP_PATH = ASSETS_PATH / "class_mapping.json"
+CLIP_BEST_PATH = ASSETS_PATH / "item_clip_best.pt"
 
 # --- HYPERPARAMETERS (Training Settings) ---
 TRAINING_CONFIG = {

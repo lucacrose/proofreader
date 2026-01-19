@@ -1,67 +1,110 @@
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
+import json
 import cv2
 from PIL import Image
+from torchvision import transforms
+from transformers import CLIPVisionModelWithProjection
 from typing import Dict, List, Any
 from .schema import TradeLayout
-from proofreader.core.config import VISUAL_MATCH_THRESHOLD
+
+class CLIPItemEmbedder(nn.Module):
+    def __init__(self, num_classes, model_id="openai/clip-vit-base-patch32"):
+        super().__init__()
+        self.vision_encoder = CLIPVisionModelWithProjection.from_pretrained(model_id)
+        self.item_prototypes = nn.Embedding(num_classes, 512)
+        self.logit_scale = nn.Parameter(torch.ones([]) * 2.659)
+
+    def forward(self, pixel_values):
+        outputs = self.vision_encoder(pixel_values=pixel_values)
+        return F.normalize(outputs.image_embeds, p=2, dim=-1)
 
 class VisualMatcher:
-    def __init__(self, embedding_bank: Dict[str, np.ndarray], item_db: List[dict], clip_processor: Any, clip_model: Any, device: str = "cuda"):
+    def __init__(self, weights_path: str, mapping_path: str, item_db: List[dict], device: str = "cuda"):
         self.device = device
-        self.bank = embedding_bank
+        
+        # 1. Load the learned mapping from training
+        with open(mapping_path, "r") as f:
+            self.class_to_idx = json.load(f)
+        self.idx_to_class = {v: k for k, v in self.class_to_idx.items()}
+        
+        # 2. Setup ID/Name lookups from your DB
         self.item_db = item_db
-        self.clip_processor = clip_processor
-        self.clip_model = clip_model
-
-        self.name_to_id = {str(i["name"]).lower().strip(): i["id"] for i in item_db}
         self.id_to_name = {str(i["id"]): i["name"] for i in item_db}
+        self.name_to_id = {str(i["name"]).lower().strip(): i["id"] for i in item_db}
 
-        self.bank_names = list(embedding_bank.keys())
-        self.bank_tensor = torch.stack([embedding_bank[name] for name in self.bank_names]).to(self.device)
-        self.bank_tensor = torch.nn.functional.normalize(self.bank_tensor, dim=1)
+        # 3. Load the Trained Model
+        num_classes = len(self.class_to_idx)
+        self.model = CLIPItemEmbedder(num_classes).to(self.device)
+        self.model.load_state_dict(torch.load(weights_path, map_location=self.device))
+        self.model.eval()
 
-    def _get_id_from_name(self, name: str) -> str:
-        item = next((i for i in self.item_db if i["name"] == name), None)
-        return item["id"] if item else 0
+        # 4. Pre-calculate the Normalized Bank (Prototypes)
+        with torch.no_grad():
+            self.bank_tensor = F.normalize(self.model.item_prototypes.weight, p=2, dim=-1)
 
-    def match_item_visuals(self, image: np.ndarray, layout: TradeLayout, similarity_threshold: float = VISUAL_MATCH_THRESHOLD):
+        # 5. Training-matching transforms
+        self.preprocess = transforms.Compose([
+            transforms.Resize((224, 224), interpolation=transforms.InterpolationMode.BICUBIC),
+            transforms.ToTensor(),
+            transforms.Normalize((0.48145466, 0.4578275, 0.40821073), 
+                                 (0.26862954, 0.26130258, 0.27577711)),
+        ])
+
+    def match_item_visuals(self, image: np.ndarray, layout: Any, similarity_threshold: float = 0.85):
         items_to_process = []
         crops = []
         
+        # --- Existing Cropping Logic ---
         for side in (layout.outgoing.items, layout.incoming.items):
             for item in side:
                 if item.thumb_box:
                     x1, y1, x2, y2 = item.thumb_box.coords
                     crop = image[y1:y2, x1:x2]
                     if crop.size > 0:
+                        # Convert CV2 image to PIL and Preprocess
                         pil_img = Image.fromarray(cv2.cvtColor(crop, cv2.COLOR_BGR2RGB))
-                        crops.append(pil_img)
+                        processed_crop = self.preprocess(pil_img)
+                        crops.append(processed_crop)
                         items_to_process.append(item)
 
         if not crops:
             return
-        
-        inputs = self.clip_processor(images=crops, return_tensors="pt", padding=True).to(self.device)
+
+        # Stack crops into a single batch [N, 3, 224, 224]
+        batch_tensor = torch.stack(crops).to(self.device)
         
         with torch.no_grad():
-            query_features = self.clip_model.get_image_features(**inputs)
-            query_features = torch.nn.functional.normalize(query_features, dim=1)
-            similarities = torch.matmul(query_features, self.bank_tensor.T)
-            best_scores, best_indices = torch.max(similarities, dim=1)
+            # Get features from the new vision encoder
+            query_features = self.model(batch_tensor)
+            
+            # Calculate Cosine Similarities
+            logits = query_features @ self.bank_tensor.t()
+            
+            # Apply our Confidence Scaling (The "MegaPhone")
+            scaled_logits = logits * 100.0
+            probabilities = F.softmax(scaled_logits, dim=-1)
+            
+            # Get the top match for each crop in the batch
+            best_probs, best_indices = torch.max(probabilities, dim=1)
         
+        # --- Update Layout Objects ---
         for i, item in enumerate(items_to_process):
-            visual_match_val = self.bank_names[best_indices[i]]
-            visual_conf = best_scores[i].item()
+            visual_idx = best_indices[i].item()
+            visual_match_id = self.idx_to_class[visual_idx] # This is the Folder Name/ID
+            visual_conf = best_probs[i].item()
 
-            is_ocr_valid = item.name.lower().strip() in self.name_to_id if item.name else False
-
-            if (not is_ocr_valid or visual_conf > 0.95) and visual_conf >= similarity_threshold:
-                if str(visual_match_val).isdigit():
-                    item.id = int(visual_match_val)
-                    item.name = self.id_to_name.get(str(visual_match_val), "Unknown Item")
-                else:
-                    item.name = visual_match_val
-                    item.id = self._get_id_from_name(visual_match_val)
+            # Logic: If confidence is high (> 99%) or OCR failed, trust the Visual ID
+            print(visual_match_id, visual_conf)
+            if visual_conf >= similarity_threshold:
+                # Update the item object
+                item.id = int(visual_match_id)
+                item.name = self.id_to_name.get(str(visual_match_id), f"ID: {visual_match_id}")
+                # Optional: store confidence for debugging
+                item.visual_confidence = visual_conf 
             else:
-                item.id = self._get_id_from_name(item.name)
+                # Revert to OCR or mark as unknown if visual confidence is too low
+                # This prevents "Dirt" being identified as a "Dominus"
+                pass
