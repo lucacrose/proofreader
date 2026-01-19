@@ -31,13 +31,11 @@ def process_batch(batch_ids, db, backgrounds_count, progress_counter):
     """
     try:
         with sync_playwright() as p:
-            # Optimization: Launch browser with performance flags
             browser = p.chromium.launch(
                 headless=True,
                 args=["--disable-gpu", "--disable-dev-shm-usage", "--no-sandbox"]
             )
             
-            # Optimization: Reuse one context/page for the entire batch
             context = browser.new_context()
             page = context.new_page()
 
@@ -54,7 +52,6 @@ def process_batch(batch_ids, db, backgrounds_count, progress_counter):
         traceback.print_exc()
 
 def generate_single_image(page, task_id, db, backgrounds_count, augmenter_js):
-    # 1. Setup Logic
     split = "train" if random.random() < GENERATOR_CONFIG["train_split_fraction"] else "val"
     output_name = f"trade_{task_id:05d}"
     img_dir = DATASET_ROOT / split / "images"
@@ -62,7 +59,6 @@ def generate_single_image(page, task_id, db, backgrounds_count, augmenter_js):
     img_dir.mkdir(parents=True, exist_ok=True)
     lbl_dir.mkdir(parents=True, exist_ok=True)
 
-    # 2. Prepare Trade Data
     trade_input = [[], []]
     is_empty_trade = random.random() < GENERATOR_CONFIG["empty_trade_chance"]
     if not is_empty_trade:
@@ -71,8 +67,7 @@ def generate_single_image(page, task_id, db, backgrounds_count, augmenter_js):
             for _ in range(num_items):
                 item = random.choice(db)
                 trade_input[side].append(f"../../../../assets/thumbnails/{item['id']}.png")
-
-    # 3. Page Setup & Execution
+    
     aspect_ratio = random.uniform(GENERATOR_CONFIG["aspect_ratio_min"], GENERATOR_CONFIG["aspect_ratio_max"])
     width = random.randint(GENERATOR_CONFIG["width_min"], GENERATOR_CONFIG["width_max"])
     height = int(width / aspect_ratio)
@@ -103,7 +98,6 @@ def generate_single_image(page, task_id, db, backgrounds_count, augmenter_js):
         }
     """)
 
-    # 4. Bounding Box Logic (Keep your existing get_padded_yolo and is_fully_visible here)
     def get_padded_yolo(element, class_id, pad_px=2):
         box = element.bounding_box()
         if not box: return None
@@ -112,15 +106,47 @@ def generate_single_image(page, task_id, db, backgrounds_count, augmenter_js):
         nw, nh = x2 - x1, y2 - y1
         return [class_id, (x1 + nw/2)/width, (y1 + nh/2)/height, nw/width, nh/height]
 
-    label_data = []
-    # ... (Your logic for querying items/robux and filling label_data) ...
+    def is_fully_visible(box, width, height, pad=4):
+        return (box['x'] - pad >= 0 and 
+                box['y'] - pad >= 0 and 
+                (box['x'] + box['width'] + pad) <= width and 
+                (box['y'] + box['height'] + pad) <= height)
 
-    # 5. Optimization: Screenshot to Memory (Avoids initial disk write)
+    label_data = []
+
+    items = page.query_selector_all("div[trade-item-card]")
+    for item in items:
+        box = item.bounding_box()
+        if box and is_fully_visible(box, width, height):
+            card_box = get_padded_yolo(item, 0, pad_px=4)
+            if card_box: label_data.append(card_box)
+
+            thumb = item.query_selector(".item-card-thumb-container") 
+            if thumb:
+                thumb_box = get_padded_yolo(thumb, 1, pad_px=4)
+                if thumb_box: label_data.append(thumb_box)
+
+            name = item.query_selector(".item-card-name")
+            if name:
+                name_box = get_padded_yolo(name, 2, pad_px=4)
+                if name_box: label_data.append(name_box)
+
+    robux_sections = page.query_selector_all(".robux-line:not(.total-value)")
+    for section in robux_sections:
+        box = section.bounding_box()
+        if box and is_fully_visible(box, width, height, 8) and section.is_visible():
+            line_box = get_padded_yolo(section, 3, pad_px=8)
+            if line_box: label_data.append(line_box)
+
+            value_element = section.query_selector(".robux-line-value") 
+            if value_element:
+                value_box = get_padded_yolo(value_element, 4, pad_px=4)
+                if value_box: label_data.append(value_box)
+    
     img_buffer = page.screenshot(type="jpeg", quality=100)
     nparr = np.frombuffer(img_buffer, np.uint8)
     full_img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    # 6. Classification Crops (In-Memory)
     item_cards = page.query_selector_all("div[trade-item-card]")
     for i, card in enumerate(item_cards):
         if not (card.is_visible() and float(card.evaluate("el => getComputedStyle(el).opacity")) > 0):
@@ -131,10 +157,8 @@ def generate_single_image(page, task_id, db, backgrounds_count, augmenter_js):
             item_id = Path(img_src).stem
             box = thumb_container.bounding_box()
             if box:
-                # Calculate coords and crop
                 pad = 4
-                # Inside your crop loop
-                max_offset = 5  # pixels
+                max_offset = 5
                 off_x = random.randint(-max_offset, max_offset)
                 off_y = random.randint(-max_offset, max_offset)
 
@@ -148,31 +172,26 @@ def generate_single_image(page, task_id, db, backgrounds_count, augmenter_js):
                         if random.random() < 0.3:
                             brightness = random.uniform(0.7, 1.3)
                             crop = cv2.convertScaleAbs(crop, alpha=brightness, beta=0)
-
-                        # 3. Subtle Blur
+                        
                         if random.random() < 0.2:
                             k_size = random.choice([3, 5])
                             crop = cv2.GaussianBlur(crop, (k_size, k_size), 0)
                         
                         q = random.randint(70, 95)
                         cv2.imwrite(str(class_dir / f"{output_name}_{i}.jpg"), crop, [int(cv2.IMWRITE_JPEG_QUALITY), q])
-
-    # 7. In-Memory Augmentation
+    
     if random.random() < 0.60:
-        # JPEG Noise simulation without reopening file
         if random.random() < 0.5:
             q = random.randint(60, 90)
             _, enc = cv2.imencode('.jpg', full_img, [int(cv2.IMWRITE_JPEG_QUALITY), q])
             full_img = cv2.imdecode(enc, 1)
-        
-        # Color/Noise
+
         if random.random() < 0.4:
             full_img = cv2.convertScaleAbs(full_img, alpha=random.uniform(0.8, 1.2), beta=random.randint(-20, 20))
         
         noise = np.random.normal(0, random.uniform(0.5, 2.5), full_img.shape).astype('float32')
         full_img = np.clip(full_img.astype('float32') + noise, 0, 255).astype('uint8')
-
-    # 8. Final Disk Write (Single Write per image)
+    
     cv2.imwrite(str(img_dir / f"{output_name}.jpg"), full_img, [int(cv2.IMWRITE_JPEG_QUALITY), 95])
     
     with open(lbl_dir / f"{output_name}.txt", "w") as f:
@@ -180,16 +199,11 @@ def generate_single_image(page, task_id, db, backgrounds_count, augmenter_js):
             f.write(f"{label[0]} {label[1]:.6f} {label[2]:.6f} {label[3]:.6f} {label[4]:.6f}\n")
 
 def run_mass_generation(total_images=65536, max_workers=24):
-    # ... (Keep your existing validation checks for backgrounds, templates, and DB) ...
-    
     with open(DB_PATH, "r") as f:
         db = json.load(f)
     
     setup_dataset_directories(force_reset=True)
 
-    # Optimization: Chunk the work into batches
-    # 65k images / 24 workers = ~2700 images per worker. 
-    # Let's do batches of 500 to keep memory stable.
     batch_size = 500
     all_ids = list(range(total_images))
     chunks = [all_ids[i:i + batch_size] for i in range(0, len(all_ids), batch_size)]
@@ -197,25 +211,21 @@ def run_mass_generation(total_images=65536, max_workers=24):
     backgrounds_count = len([f for f in BACKGROUNDS_DIR.iterdir() if f.is_file()])
 
     manager = multiprocessing.Manager()
-    progress_counter = manager.Value('i', 0) # 'i' for integer
+    progress_counter = manager.Value('i', 0)
 
     print(f"Generating {total_images} images using {max_workers} workers...")
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
-        # Pass the shared counter to each process
         futures = [
             executor.submit(process_batch, chunk, db, backgrounds_count, progress_counter) 
             for chunk in chunks
         ]
-        
-        # Initialize tqdm with the total image count
+
         with tqdm(total=total_images, desc="Generating Images") as pbar:
             last_val = 0
             while True:
-                # Check if all futures are done
                 done, not_done = concurrent.futures.wait(futures, timeout=0.5)
-                
-                # Update progress bar based on the shared counter
+
                 current_val = progress_counter.value
                 pbar.update(current_val - last_val)
                 last_val = current_val

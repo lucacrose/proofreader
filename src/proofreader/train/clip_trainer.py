@@ -46,10 +46,9 @@ class EarlyStopper:
     def check(self, current_accuracy, model):
         if current_accuracy > (self.best_accuracy + self.min_delta):
             self.best_accuracy = current_accuracy
-            # Handle potential torch.compile wrapper (though disabled for Windows)
             self.best_state = getattr(model, "_orig_mod", model).state_dict()
             self.counter = 0
-            return False, True # Don't stop, but is a new best
+            return False, True
         else:
             self.counter += 1
             return (self.counter >= self.patience), False
