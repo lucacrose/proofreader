@@ -1,7 +1,7 @@
 from ultralytics import YOLO
 from ..core.config import TRAINING_CONFIG, DATA_YAML_PATH
 
-def train_model(device):
+def train_yolo(device):
     model = YOLO("yolo11n.pt")
 
     model.train(
@@ -27,7 +27,7 @@ def train_model(device):
         workers = 8
     )
 
-def finish_training(file_path):
+def finish_training(file_path, device):
     model = YOLO(file_path)
 
     model.train(
@@ -35,10 +35,10 @@ def finish_training(file_path):
         epochs = 32,
         close_mosaic = 32,
         patience = 20,
-        imgsz = 640,
-        batch = 24,
-        device = 0 # Change to "cpu" if no CUDA devices
+        imgsz = TRAINING_CONFIG["img_size"],
+        batch = TRAINING_CONFIG["batch_size"],
+        device = device
     )
 
 if __name__ == "__main__":
-    train_model()
+    train_yolo(0) # Change from 0 -> "cpu" if no CUDA devices

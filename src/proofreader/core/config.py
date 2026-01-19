@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 ASSETS_PATH = BASE_DIR / "assets"
 MODEL_PATH = ASSETS_PATH / "weights" / "yolo.pt"
 DB_PATH = ASSETS_PATH / "item_database.json"
-CACHE_PATH = ASSETS_PATH / "item_embeddings_bank.pt"#ASSETS_PATH / "embedding_bank.pt"
+CACHE_PATH = ASSETS_PATH / "item_embeddings_bank.pt"
 THUMBNAILS_DIR = ASSETS_PATH / "thumbnails"
 TRAIN_THUMBNAILS_DIR = ASSETS_PATH / "train_data"
 
@@ -27,6 +27,8 @@ DEFAULT_TEMPLATE = TEMPLATES_DIR / "trade_ui.html"
 
 CLASS_MAP_PATH = ASSETS_PATH / "class_mapping.json"
 CLIP_BEST_PATH = ASSETS_PATH / "weights" / "clip.pt"
+
+BASE_URL = "https://github.com/lucacrose/proofreader/releases/latest/download"
 
 # --- HYPERPARAMETERS (Training Settings) ---
 TRAINING_CONFIG = {
@@ -86,7 +88,6 @@ AUGMENTER_CONFIG = {
 
 # Robustness Thresholds
 FUZZY_MATCH_CONFIDENCE_THRESHOLD = 60.0
-VISUAL_MATCH_THRESHOLD = 0.88
 
 # --- HARDWARE SETTINGS ---
 # Automatically detects if a GPU is available for faster training

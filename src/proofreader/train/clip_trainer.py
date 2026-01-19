@@ -4,13 +4,12 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from transformers import CLIPVisionModelWithProjection
-from pathlib import Path
 from tqdm import tqdm
 from torch.amp import GradScaler, autocast
+from proofreader.core.config import CLASS_MAP_PATH, CLIP_BEST_PATH, DATASET_ROOT
 import os
 import json
 
-# --- SETTINGS ---
 MODEL_ID = "openai/clip-vit-base-patch32"
 EPOCHS = 20
 BATCH_SIZE = 48 
@@ -20,15 +19,11 @@ WEIGHT_DECAY = 0.1
 PATIENCE = 3        # Stop if no improvement for 3 epochs
 MIN_DELTA = 0.1     # Minimum % improvement to be considered "better"
 
-# --- 1. MODEL DEFINITION ---
-
 class CLIPItemEmbedder(nn.Module):
     def __init__(self, num_classes):
         super().__init__()
         self.vision_encoder = CLIPVisionModelWithProjection.from_pretrained(MODEL_ID)
-        # Learnable 'Prototypes' for each of your 2546 item IDs
         self.item_prototypes = nn.Embedding(num_classes, EMBEDDING_DIM)
-        # Temperature for contrastive loss (initialized to CLIP's default)
         self.logit_scale = nn.Parameter(torch.ones([]) * 2.659)
 
     def forward(self, pixel_values, item_ids):
@@ -39,8 +34,6 @@ class CLIPItemEmbedder(nn.Module):
         label_embeds = F.normalize(label_embeds, p=2, dim=-1)
         
         return image_embeds, label_embeds, self.logit_scale.exp()
-
-# --- 2. EARLY STOPPING UTILITY ---
 
 class EarlyStopper:
     def __init__(self, patience=3, min_delta=0.05):
@@ -60,8 +53,6 @@ class EarlyStopper:
         else:
             self.counter += 1
             return (self.counter >= self.patience), False
-
-# --- 3. AUGMENTATIONS (Blur & Crush included) ---
 
 def get_transforms():
     return transforms.Compose([
@@ -83,19 +74,15 @@ def get_transforms():
                              (0.26862954, 0.26130258, 0.27577711)),
     ])
 
-# --- 4. MAIN TRAINING FUNCTION ---
-
-def train():
+def train_clip():
     torch.backends.cudnn.benchmark = True 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # Data
-    dataset_path = "src/proofreader/train/dataset/classification"
+    dataset_path = f"{DATASET_ROOT}/classification"
     full_dataset = datasets.ImageFolder(root=dataset_path, transform=get_transforms())
     num_classes = len(full_dataset.classes)
-    
-    # Save class mapping for inference later
-    with open("class_mapping.json", "w") as f:
+
+    with open(CLASS_MAP_PATH, "w") as f:
         json.dump(full_dataset.class_to_idx, f, separators=(",", ":"))
 
     train_size = int(0.95 * len(full_dataset))
@@ -107,7 +94,6 @@ def train():
     )
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, pin_memory=True)
 
-    # Model, Optimizer, etc.
     model = CLIPItemEmbedder(num_classes).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
     scaler = GradScaler('cuda')
@@ -126,7 +112,7 @@ def train():
 
             with autocast('cuda'):
                 img_emb, lbl_emb, scale = model(images, labels)
-                # CLIP Symmetric Loss
+
                 logits = scale * img_emb @ lbl_emb.t()
                 ground_truth = torch.arange(len(images), device=device)
                 loss = (F.cross_entropy(logits, ground_truth) + F.cross_entropy(logits.t(), ground_truth)) / 2
@@ -138,7 +124,6 @@ def train():
 
         scheduler.step()
 
-        # Validation
         model.eval()
         correct, total = 0, 0
         with torch.no_grad(), autocast('cuda'):
@@ -155,10 +140,9 @@ def train():
         val_acc = 100 * correct / total
         print(f"Validation Accuracy: {val_acc:.2f}%")
 
-        # Early Stopping Logic
         stop_now, is_best = stopper.check(val_acc, model)
         if is_best:
-            torch.save(stopper.best_state, "item_clip_best.pt")
+            torch.save(stopper.best_state, CLIP_BEST_PATH)
             print("Successfully saved new best model weights.")
         
         if stop_now:
@@ -168,4 +152,4 @@ def train():
     print("Training finished.")
 
 if __name__ == "__main__":
-    train()
+    train_clip()
