@@ -20,7 +20,7 @@ Roblox trade screenshots are commonly used as proof in marketplaces, moderation 
 
 ## Example
 
-![Example](./docs/assets/example.png)
+![Example](https://github.com/lucacrose/proofreader/raw/main/docs/assets/example.png)
 
 ## ⚡ Performance
 
@@ -82,7 +82,7 @@ The model handles the inconsistencies of user-generated screenshots (varied crop
 
 4. **Heuristic Judge:** Low-confidence visual matches trigger OCR and fuzzy-logic reconciliation.
 
-![Diagram](./docs/assets/flow_diagram.png)
+![Diagram](https://github.com/lucacrose/proofreader/raw/main/docs/assets/flow_diagram.png)
 
 ## 📊 Data Schema
 The `get_trade_data()` function returns a structured dictionary containing `incoming` and `outgoing` trade sides.
