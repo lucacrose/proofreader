@@ -20,15 +20,17 @@ Roblox trade screenshots are commonly used as proof in marketplaces, moderation 
 
 ## Example
 
-| Input Image | Detected UI Elements |
-| ----------- | ------------------ |
-| ![Input](./docs/assets/trade_before.png) | ![Detection](./docs/assets/trade_after.png) |
-
-<details>
-<summary><b>Click to view Sample Output JSON</b></summary>
-
-```json
-{
+<table>
+<tr>
+<td>
+<b>Input Image</b><br>
+<img src="./docs/assets/trade_before.png" height="240"><br><br>
+<b>Detected UI Elements</b><br>
+<img src="./docs/assets/trade_after.png" height="240">
+</td>
+<td>
+<b>Sample Output JSON</b>
+<pre><code class="language-json">{
     "outgoing": {
         "item_count": 4,
         "robux_value": 0,
@@ -48,8 +50,11 @@ Roblox trade screenshots are commonly used as proof in marketplaces, moderation 
         ]
     }
 }
-```
-</details>
+</code></pre>
+</td>
+</tr>
+</table>
+
 
 ## ⚡ Performance
 
@@ -74,7 +79,7 @@ Tested on an **RTX 5070** using $n=500$ real-world "worst-case" user screenshots
 
 - **Theme & Scale Agnostic:** Robust performance across various UI themes (Dark/Light), resolutions, and custom display scales.
 
-## ✅ Quick Start
+## 💻 Quick Start
 
 ### Installation
 
@@ -100,7 +105,7 @@ print(f"Robux In: {data['incoming']['robux_value']}")
 > [!TIP]
 > **First Run:** On your first execution, Proofreader will automatically download the model weights and item database (~360MB). Subsequent runs will use the local cache for maximum speed.
 
-## 🔄 How it Reads
+## 🧩 How it Works
 The model handles the inconsistencies of user-generated screenshots (varied crops, UI themes, and extensions) through a multi-stage process:
 
 1. **Detection:** YOLOv11 localizes item cards, thumbnails, and robux containers.
@@ -148,14 +153,14 @@ python scripts/train_models.py
 ```
 
 > [!CAUTION]
-> **GPU Required:** Training is not recommended on a CPU. Final models save to runs/train/weights/best.pt. Rename to yolo.pt and move to src/assets/weights.
+> **GPU Required:** Training is not recommended on a CPU. Final models save to `runs/train/weights/best.pt`. Rename to `yolo.pt` and move to `src/assets/weights`.
 
 ## 🛠️ Tech Stack
 
 - **Vision:** YOLOv11 (Detection), CLIP (Embeddings), OpenCV (Processing)
 - **OCR:** EasyOCR
 - **Logic:** RapidFuzz (Fuzzy String Matching)
-- **Core:** Python 3.12+, PyTorch, NumPy
+- **Core:** Python 3.12, PyTorch, NumPy
 
 ## 🤝 Contributing
 
