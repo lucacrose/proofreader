@@ -2,14 +2,13 @@
 
 A high-speed vision pipeline for reading Roblox trade screenshots.
 
-![PyPI](https://img.shields.io/pypi/v/rbx-proofreader?color=blue&label=PyPI)
-![Downloads](https://static.pepy.tech/badge/rbx-proofreader?color=blue)
-![Python](https://img.shields.io/pypi/pyversions/rbx-proofreader?logo=python&logoColor=white&color=blue)
-![License](https://img.shields.io/badge/license-MIT-blue)
-![Build Status](https://github.com/lucacrose/proofreader/actions/workflows/build.yml/badge.svg?color=brightgreen)
-![GPU](https://img.shields.io/badge/GPU-CUDA-blueviolet)
-![YOLOv11](https://img.shields.io/badge/model-YOLOv11-blueviolet)
-
+[![PyPI](https://img.shields.io/pypi/v/rbx-proofreader?color=blue&label=PyPI)](https://pypi.org/project/rbx-proofreader/)
+[![Downloads](https://static.pepy.tech/badge/rbx-proofreader)](https://pepy.tech/project/rbx-proofreader)
+[![Python](https://img.shields.io/pypi/pyversions/rbx-proofreader?logo=python&logoColor=white&color=blue)](https://pypi.org/project/rbx-proofreader/)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Build Status](https://github.com/lucacrose/proofreader/actions/workflows/build.yml/badge.svg)](https://github.com/lucacrose/proofreader/actions)
+[![GPU](https://img.shields.io/badge/GPU-CUDA-blueviolet)](https://developer.nvidia.com/cuda-zone)
+[![YOLOv11](https://img.shields.io/badge/model-YOLOv11-blueviolet)](https://github.com/ultralytics/ultralytics)
 
 Proofreader transforms unstructured screenshots of Roblox trades ("proofs", hence "proofreader") into structured Python dictionaries. By combining **YOLOv11** for object detection, **CLIP** for visual similarity, and **EasyOCR**, it achieves high accuracy across diverse UI themes, resolutions, and extensions.
 
