@@ -9,15 +9,29 @@ from torch.amp import GradScaler, autocast
 from proofreader.core.config import CLASS_MAP_PATH, CLIP_BEST_PATH, DATASET_ROOT
 import os
 import json
+import numpy as np
+import random
 
 MODEL_ID = "openai/clip-vit-base-patch32"
-EPOCHS = 20
+EPOCHS = 10
 BATCH_SIZE = 48 
 LEARNING_RATE = 1e-5
 EMBEDDING_DIM = 512
 WEIGHT_DECAY = 0.1
 PATIENCE = 3        # Stop if no improvement for 3 epochs
 MIN_DELTA = 0.1     # Minimum % improvement to be considered "better"
+
+def set_seed(seed: int = 42):
+    random.seed(seed)
+    np.random.seed(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
+
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 class CLIPItemEmbedder(nn.Module):
     def __init__(self, num_classes):
@@ -74,6 +88,8 @@ def get_transforms():
     ])
 
 def train_clip():
+    set_seed(1)
+
     torch.backends.cudnn.benchmark = True 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -110,11 +126,14 @@ def train_clip():
             optimizer.zero_grad(set_to_none=True)
 
             with autocast('cuda'):
-                img_emb, lbl_emb, scale = model(images, labels)
+                img_emb, _, scale = model(images, labels)
+                img_emb = F.normalize(img_emb, p=2, dim=-1)
 
-                logits = scale * img_emb @ lbl_emb.t()
-                ground_truth = torch.arange(len(images), device=device)
-                loss = (F.cross_entropy(logits, ground_truth) + F.cross_entropy(logits.t(), ground_truth)) / 2
+                all_ids = torch.arange(num_classes, device=device)
+                prototypes = F.normalize(model.item_prototypes(all_ids), p=2, dim=-1)
+
+                logits = scale * img_emb @ prototypes.t()
+                loss = F.cross_entropy(logits, labels)
 
             scaler.scale(loss).backward()
             scaler.step(optimizer)

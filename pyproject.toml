@@ -9,6 +9,12 @@ description = "Visual trade detection and OCR engine"
 readme = "README.md"
 requires-python = ">=3.12"
 license = {text = "MIT"}
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+]
+
 dependencies = [
     "easyocr>=1.7.0",
     "numpy>=1.24.0",

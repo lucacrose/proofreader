@@ -70,10 +70,15 @@ class VisualMatcher:
         with torch.inference_mode():
             query_features = self.model(batch_tensor)
 
-            logits = query_features @ self.bank_tensor.t()
+            logits = query_features @ self.bank_tensor.t() * self.model.logit_scale.exp()
+            topk_scores, topk_indices = logits.topk(k=5, dim=1)
 
-            probabilities = F.softmax(logits * 100.0, dim=-1)
-            best_probs, best_indices = torch.max(probabilities, dim=1)
+            probs = F.softmax(topk_scores.float(), dim=1)
+            
+            best_idx_in_topk = probs.argmax(dim=1)
+            best_indices = topk_indices[torch.arange(len(topk_indices)), best_idx_in_topk]
+            best_probs = probs[torch.arange(len(probs)), best_idx_in_topk]
+
         
         for i, item in enumerate(items_to_process):
             visual_idx = best_indices[i].item()
