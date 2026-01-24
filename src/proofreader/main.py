@@ -12,7 +12,7 @@ from .core.detector import TradeDetector
 from .core.resolver import SpatialResolver
 from .core.ocr import OCRReader
 from .core.matcher import VisualMatcher
-from .core.config import DB_PATH, MODEL_PATH, DEVICE, CLASS_MAP_PATH, CLIP_BEST_PATH, BASE_URL, CERTAIN_VISUAL_CONF
+from .core.config import DB_PATH, MODEL_PATH, DEVICE, CLASS_MAP_PATH, CLIP_BEST_PATH, BASE_URL, CERTAIN_VISUAL_CONF, VERSION_TAG
 from .core.schema import ResolvedItem
 
 ImageInput = Union[str, Path, np.ndarray]
@@ -51,10 +51,10 @@ class TradeEngine:
 
     def _ensure_assets(self):
         assets = {
-            DB_PATH: f"{BASE_URL}/item_database.json",
-            MODEL_PATH: f"{BASE_URL}/yolo.pt",
-            CLIP_BEST_PATH: f"{BASE_URL}/clip.pt",
-            CLASS_MAP_PATH: f"{BASE_URL}/class_mapping.json"
+            DB_PATH: f"{BASE_URL}/releases/download/{VERSION_TAG}/item_database.json",
+            MODEL_PATH: f"{BASE_URL}/releases/download/{VERSION_TAG}/yolo.pt",
+            CLIP_BEST_PATH: f"{BASE_URL}/releases/download/{VERSION_TAG}/clip.pt",
+            CLASS_MAP_PATH: f"{BASE_URL}/releases/download/{VERSION_TAG}/class_mapping.json"
         }
 
         for path, url in assets.items():
