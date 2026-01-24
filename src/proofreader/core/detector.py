@@ -1,6 +1,10 @@
 from typing import List
 from ultralytics.models import YOLO
 from .schema import Box
+from typing import Union
+import numpy as np
+
+ImageSource = Union[str, np.ndarray]
 
 class TradeDetector:
     def __init__(self, model_path: str):
@@ -14,8 +18,8 @@ class TradeDetector:
             4: "robux_value"
         }
 
-    def detect(self, image_source: str, conf_threshold: float) -> List[Box]:
-        results = self.model.predict(image_source, conf=conf_threshold, verbose=False)[0]
+    def detect(self, image: ImageSource, conf_threshold: float) -> List[Box]:
+        results = self.model.predict(image, conf=conf_threshold, verbose=False)[0]
 
         detected_boxes = []
 

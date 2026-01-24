@@ -3,6 +3,9 @@ import cv2
 import torch
 import json
 import requests
+from typing import Union
+from pathlib import Path
+import numpy as np
 from tqdm import tqdm
 from transformers import CLIPProcessor, CLIPModel
 from .core.detector import TradeDetector
@@ -11,6 +14,8 @@ from .core.ocr import OCRReader
 from .core.matcher import VisualMatcher
 from .core.config import DB_PATH, MODEL_PATH, DEVICE, CLASS_MAP_PATH, CLIP_BEST_PATH, BASE_URL, CERTAIN_VISUAL_CONF
 from .core.schema import ResolvedItem
+
+ImageInput = Union[str, Path, np.ndarray]
 
 class TradeEngine:
     def __init__(self):
@@ -110,15 +115,25 @@ class TradeEngine:
             item.id = ocr_id_direct
             item.name = self.matcher.id_to_name.get(str(ocr_id_direct))
 
-    def process_image(self, image_path: str, conf_threshold: float) -> dict:
-        if not os.path.exists(image_path):
-            raise FileNotFoundError(f"Image not found: {image_path}")
-        
-        boxes = self.detector.detect(image_path, conf_threshold)
-        layout = self.resolver.resolve(boxes)
-        image = cv2.imread(image_path)
+    def _load_image(self, image: ImageInput) -> np.ndarray:
+        if isinstance(image, np.ndarray):
+            return image
 
-        self.matcher.match_item_visuals(image, layout)
+        image = str(image)
+        img = cv2.imread(image)
+        
+        if img is None:
+            raise ValueError(f"Failed to load image: {image}")
+        
+        return img
+
+    def process_image(self, image: ImageInput, conf_threshold: float) -> dict:
+        image_np = self._load_image(image)
+        
+        boxes = self.detector.detect(image_np, conf_threshold)
+        layout = self.resolver.resolve(boxes)
+
+        self.matcher.match_item_visuals(image_np, layout)
 
         for side in [layout.outgoing, layout.incoming]:
             for item in side.items:
@@ -128,7 +143,7 @@ class TradeEngine:
                     item._finalized = True
 
         self.reader.process_layout(
-            image,
+            image_np,
             layout,
             skip_if=lambda item: getattr(item, "_finalized", False)
         )
