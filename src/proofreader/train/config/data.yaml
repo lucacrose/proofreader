@@ -8,3 +8,5 @@ names:
   2: item_name
   3: robux_line
   4: robux_value
+  5: outgoing_header
+  6: incoming_header

@@ -2,7 +2,7 @@ from ultralytics import YOLO
 from ..core.config import TRAINING_CONFIG, DATA_YAML_PATH
 
 def train_yolo(device):
-    model = YOLO("yolo11n.pt")
+    model = YOLO("yolo26n.pt")
 
     model.train(
         data = DATA_YAML_PATH,

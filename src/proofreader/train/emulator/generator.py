@@ -25,6 +25,104 @@ from proofreader.core.config import (
 
 GENERATOR_CONFIG = AUGMENTER_CONFIG["generator"]
 
+def clean_and_save_labels(page, width, height):
+    label_data = []
+
+    chat_bar = page.query_selector("#chat-main")
+    chat_box = chat_bar.bounding_box() if chat_bar and chat_bar.is_visible() else None
+
+    def is_overlapped_by_chat(box, class_id):
+        if class_id not in [2, 4] or not box or not chat_box:
+            return False
+        
+        return not (
+            box['x'] + box['width'] < chat_box['x'] or
+            box['x'] > chat_box['x'] + chat_box['width'] or
+            box['y'] + box['height'] < chat_box['y'] or
+            box['y'] > chat_box['y'] + chat_box['height']
+        )
+
+    def get_valid_yolo_data(box, class_id, pad=0):
+        if not box:
+            return None
+
+        x1_raw = box['x'] - pad
+        y1_raw = box['y'] - pad
+        x2_raw = box['x'] + box['width'] + pad
+        y2_raw = box['y'] + box['height'] + pad
+
+        if class_id in [1, 3]:
+            if x1_raw < 0 or y1_raw < 0 or x2_raw > width or y2_raw > height:
+                return None
+            
+        if is_overlapped_by_chat(box, class_id):
+            return None
+
+        x1 = max(0, x1_raw)
+        y1 = max(0, y1_raw)
+        x2 = min(width, x2_raw)
+        y2 = min(height, y2_raw)
+
+        actual_h = y2 - y1
+        if class_id in [5, 6]:
+            if actual_h < (box['height'] * 0.7):
+                return None
+
+        nw, nh = x2 - x1, y2 - y1
+        if nw <= 1 or nh <= 1:
+            return None
+
+        return [
+            class_id,
+            (x1 + nw/2) / width,
+            (y1 + nh/2) / height,
+            nw / width,
+            nh / height
+        ], (x1, y1, x2, y2)
+    
+    items = page.query_selector_all("div[trade-item-card]")
+    for item in items:
+        thumb = item.query_selector(".item-card-thumb-container")
+        name = item.query_selector(".item-card-name")
+        
+        t_box = thumb.bounding_box() if thumb and thumb.is_visible() else None
+        n_box = name.bounding_box() if name and name.is_visible() else None
+
+        t_data = get_valid_yolo_data(t_box, 1, pad=4)
+        n_data = get_valid_yolo_data(n_box, 2, pad=4)
+
+        if t_data:
+            u_x1, u_y1, u_x2, u_y2 = t_data[1]
+            if n_data:
+                u_x1 = min(u_x1, n_data[1][0])
+                u_x2 = max(u_x2, n_data[1][2])
+                u_y2 = n_data[1][3]
+
+            nw, nh = u_x2 - u_x1, u_y2 - u_y1
+            label_data.append([0, (u_x1 + nw/2)/width, (u_y1 + nh/2)/height, nw/width, nh/height])
+            label_data.append(t_data[0])
+            if n_data: label_data.append(n_data[0])
+
+    for section in page.query_selector_all(".robux-line"):
+        if section.is_visible() and "Robux Offered" in section.inner_text():
+            res = get_valid_yolo_data(section.bounding_box(), 3, pad=6)
+            if res: 
+                label_data.append(res[0])
+                val_el = section.query_selector(".robux-line-value")
+                if val_el and val_el.is_visible():
+                    res_v = get_valid_yolo_data(val_el.bounding_box(), 4, pad=4)
+                    if res_v: label_data.append(res_v[0])
+
+    for header in page.query_selector_all("h3.trade-list-detail-offer-header"):
+        if not header.is_visible(): continue
+        text = header.inner_text().lower()
+        cid = 5 if "gave" in text else 6 if "received" in text else None
+        if cid:
+            res_h = get_valid_yolo_data(header.bounding_box(), cid, pad=4)
+            if res_h: label_data.append(res_h[0])
+
+    return label_data
+
 def process_batch(batch_ids, db, backgrounds_count, progress_counter):
     try:
         with sync_playwright() as p:
@@ -95,50 +193,7 @@ def generate_single_image(page, task_id, db, backgrounds_count, augmenter_js):
         }
     """)
 
-    def get_padded_yolo(element, class_id, pad_px=2):
-        box = element.bounding_box()
-        if not box: return None
-        x1, y1 = max(0, box['x'] - pad_px), max(0, box['y'] - pad_px)
-        x2, y2 = min(width, box['x'] + box['width'] + pad_px), min(height, box['y'] + box['height'] + pad_px)
-        nw, nh = x2 - x1, y2 - y1
-        return [class_id, (x1 + nw/2)/width, (y1 + nh/2)/height, nw/width, nh/height]
-
-    def is_fully_visible(box, width, height, pad=4):
-        return (box['x'] - pad >= 0 and 
-                box['y'] - pad >= 0 and 
-                (box['x'] + box['width'] + pad) <= width and 
-                (box['y'] + box['height'] + pad) <= height)
-
-    label_data = []
-
-    items = page.query_selector_all("div[trade-item-card]")
-    for item in items:
-        box = item.bounding_box()
-        if box and is_fully_visible(box, width, height):
-            card_box = get_padded_yolo(item, 0, pad_px=4)
-            if card_box: label_data.append(card_box)
-
-            thumb = item.query_selector(".item-card-thumb-container") 
-            if thumb:
-                thumb_box = get_padded_yolo(thumb, 1, pad_px=4)
-                if thumb_box: label_data.append(thumb_box)
-
-            name = item.query_selector(".item-card-name")
-            if name:
-                name_box = get_padded_yolo(name, 2, pad_px=4)
-                if name_box: label_data.append(name_box)
-
-    robux_sections = page.query_selector_all(".robux-line:not(.total-value)")
-    for section in robux_sections:
-        box = section.bounding_box()
-        if box and is_fully_visible(box, width, height, 8) and section.is_visible():
-            line_box = get_padded_yolo(section, 3, pad_px=8)
-            if line_box: label_data.append(line_box)
-
-            value_element = section.query_selector(".robux-line-value") 
-            if value_element:
-                value_box = get_padded_yolo(value_element, 4, pad_px=4)
-                if value_box: label_data.append(value_box)
+    label_data = clean_and_save_labels(page, width, height)
     
     img_buffer = page.screenshot(type="jpeg", quality=100)
     nparr = np.frombuffer(img_buffer, np.uint8)
@@ -195,7 +250,7 @@ def generate_single_image(page, task_id, db, backgrounds_count, augmenter_js):
         for label in label_data:
             f.write(f"{label[0]} {label[1]:.6f} {label[2]:.6f} {label[3]:.6f} {label[4]:.6f}\n")
 
-def run_mass_generation(total_images=65536, max_workers=24):
+def run_mass_generation(total_images=16384, max_workers=24):
     with open(DB_PATH, "r") as f:
         db = json.load(f)
     

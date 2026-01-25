@@ -113,7 +113,7 @@
             if (hideName) nameLabel.style.display = "none";
             if (hideThumb) img.parentElement.parentElement.parentElement.parentElement.style.display = "none";
         } else {
-            card.style.opacity = "0"; 
+            card.style.display = "none"; 
             card.setAttribute("data-item-id", "");
         }
     });
