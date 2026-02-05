@@ -49,17 +49,17 @@ class TradeEngine:
         ) 
 
     def _ensure_assets(self):
-        BASE_URL = "https://github.com/lucacrose/proofreader/releases/latest/download"
+        BASE_URL = "https://github.com/lucacrose/proofreader"
         
         assets = {
-            DB_PATH: f"{BASE_URL}/db.json",
-            CACHE_PATH: f"{BASE_URL}/embedding_bank.pt",
-            MODEL_PATH: f"{BASE_URL}/yolo.pt"
+            DB_PATH: f"{BASE_URL}/releases/download/v1.0.0/db.json",
+            CACHE_PATH: f"{BASE_URL}/releases/download/v1.0.0/embedding_bank.pt",
+            MODEL_PATH: f"{BASE_URL}/releases/download/v1.0.0/yolo.pt"
         }
 
         for path, url in assets.items():
             if not path.exists():
-                print(f"📦 {path.name} missing. Downloading from latest release...")
+                print(f"📦 {path.name} missing. Downloading from published release...")
                 self._download_file(url, path)
 
     def _download_file(self, url, dest_path):
