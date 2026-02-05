@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rbx-proofreader"
-version = "1.0.0"
+version = "1.0.1"
 description = "Visual trade detection and OCR engine"
 readme = "README.md"
 requires-python = ">=3.12"
