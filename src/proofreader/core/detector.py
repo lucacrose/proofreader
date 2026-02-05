@@ -15,11 +15,13 @@ class TradeDetector:
             1: "item_thumb",
             2: "item_name",
             3: "robux_line",
-            4: "robux_value"
+            4: "robux_value",
+            5: "outgoing_header",
+            6: "incoming_header"
         }
 
     def detect(self, image: ImageSource, conf_threshold: float) -> List[Box]:
-        results = self.model.predict(image, conf=conf_threshold, verbose=False)[0]
+        results = self.model.predict(image, verbose=False, conf=conf_threshold)[0]
 
         detected_boxes = []
 

@@ -80,7 +80,7 @@ AUGMENTER_CONFIG = {
         "height_max": 1600,                # Maximum height in pixels (after aspect ratio calculation)
         "total_images": 1024,              # Total number of images to generate
         "max_workers": 16,                 # Maximum number of parallel workers for generation
-        "train_split_fraction": 0.8,       # Fraction of images used for training vs validation
+        "train_split_fraction": 0.9,       # Fraction of images used for training vs validation
         "empty_trade_chance": 0.09,        # Chance a trade has no items or robux (negative sample)
     }
 }

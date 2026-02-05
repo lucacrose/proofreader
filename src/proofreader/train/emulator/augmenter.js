@@ -187,4 +187,14 @@
 
         totalValueLine.parentElement.insertBefore(rapLine, totalValueLine);
     });
+
+    if (is_empty_trade) {
+        const headers = document.querySelectorAll('h3.trade-list-detail-offer-header');
+        headers.forEach(header => {
+            const text = header.innerText.toLowerCase();
+            if (text.includes('gave') || text.includes('received')) {
+                header.style.display = 'none';
+            }
+        });
+    }
 }

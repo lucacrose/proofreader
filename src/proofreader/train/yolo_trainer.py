@@ -10,7 +10,7 @@ def train_yolo(device):
         imgsz = TRAINING_CONFIG["img_size"],
         device = device,
         plots = True,
-        multi_scale = True,
+        multi_scale = 0.5,
 
         batch = TRAINING_CONFIG["batch_size"],
         patience = TRAINING_CONFIG["patience"],
@@ -32,9 +32,9 @@ def finish_training(file_path, device):
 
     model.train(
         data = DATA_YAML_PATH,
-        epochs = 32,
-        close_mosaic = 32,
-        patience = 20,
+        epochs = 28,
+        close_mosaic = 28,
+        patience = 6,
         imgsz = TRAINING_CONFIG["img_size"],
         batch = TRAINING_CONFIG["batch_size"],
         device = device
