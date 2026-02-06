@@ -12,7 +12,7 @@ from .core.detector import TradeDetector
 from .core.resolver import SpatialResolver
 from .core.ocr import OCRReader
 from .core.matcher import VisualMatcher
-from .core.config import DB_PATH, MODEL_PATH, DEVICE, CLASS_MAP_PATH, CLIP_BEST_PATH, BASE_URL, CERTAIN_VISUAL_CONF, VERSION_TAG
+from .core.config import DB_PATH, MODEL_PATH, DEVICE, CLASS_MAP_PATH, CLIP_BEST_PATH, BASE_URL, CERTAIN_VISUAL_CONF, VERSION_TAG, CLIP_VIT_BASE_PATCH32_PATH
 from .core.schema import ResolvedItem
 
 ImageInput = Union[str, Path, np.ndarray]
@@ -32,9 +32,6 @@ class TradeEngine:
 
         self.device = DEVICE
 
-        self.clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(self.device)
-        self.clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32", use_fast=True)
-
         with open(DB_PATH, "r") as f:
             item_db = json.load(f)
         
@@ -44,10 +41,22 @@ class TradeEngine:
 
         self.matcher = VisualMatcher(
             item_db=item_db,
+            model_path=CLIP_VIT_BASE_PATCH32_PATH,
             weights_path=CLIP_BEST_PATH,
             mapping_path=CLASS_MAP_PATH,
             device=self.device
-        ) 
+        )
+
+    def _download_clip_locally(self):
+        model_name = "openai/clip-vit-base-patch32"
+        model = CLIPModel.from_pretrained(model_name)
+        processor = CLIPProcessor.from_pretrained(model_name)
+
+        model_path = str(CLIP_VIT_BASE_PATCH32_PATH.resolve().as_posix())
+
+        model.save_pretrained(model_path)
+        processor.save_pretrained(model_path)
+        print(f"✅ CLIP saved locally at {CLIP_VIT_BASE_PATCH32_PATH}")
 
     def _ensure_assets(self):
         assets = {
@@ -59,8 +68,12 @@ class TradeEngine:
 
         for path, url in assets.items():
             if not path.exists():
-                print(f"📦 {path.name} missing. Downloading from latest release...")
+                print(f"📦 {path.name} missing. Downloading from {VERSION_TAG} release...")
                 self._download_file(url, path)
+
+        if not CLIP_VIT_BASE_PATCH32_PATH.exists():
+            print(f"📦 Local CLIP assets missing. Downloading to {CLIP_VIT_BASE_PATCH32_PATH}...")
+            self._download_clip_locally()
 
     def _download_file(self, url, dest_path):
         response = requests.get(url, stream=True)

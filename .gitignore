@@ -30,6 +30,7 @@ src/assets/weights/*
 !src/assets/weights/.gitkeep
 src/assets/item_database.json
 src/assets/class_mapping.json
+src/assets/clip-vit-base-patch32
 
 # --- Training ---
 src/proofreader/train/emulator/backgrounds/*

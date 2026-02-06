@@ -17,6 +17,7 @@ THUMBNAILS_DIR = ASSETS_PATH / "thumbnails"
 TRAIN_THUMBNAILS_DIR = ASSETS_PATH / "train_data"
 CLASS_MAP_PATH = ASSETS_PATH / "class_mapping.json"
 CLIP_BEST_PATH = ASSETS_PATH / "weights" / "clip.pt"
+CLIP_VIT_BASE_PATCH32_PATH = ASSETS_PATH / "clip-vit-base-patch32"
 
 # --- TRAINING & EMULATOR ---
 TRAIN_DIR = BASE_DIR / "proofreader" / "train"
