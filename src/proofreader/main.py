@@ -1,4 +1,4 @@
-import os
+import io
 import cv2
 import torch
 import json
@@ -15,7 +15,7 @@ from .core.matcher import VisualMatcher
 from .core.config import DB_PATH, MODEL_PATH, DEVICE, CLASS_MAP_PATH, CLIP_BEST_PATH, BASE_URL, CERTAIN_VISUAL_CONF, VERSION_TAG, CLIP_VIT_BASE_PATCH32_PATH
 from .core.schema import ResolvedItem
 
-ImageInput = Union[str, Path, np.ndarray]
+ImageInput = Union[str, Path, np.ndarray, bytes, io.BytesIO]
 
 class TradeEngine:
     def __init__(self):
@@ -131,12 +131,21 @@ class TradeEngine:
     def _load_image(self, image: ImageInput) -> np.ndarray:
         if isinstance(image, np.ndarray):
             return image
-
-        image = str(image)
-        img = cv2.imread(image)
         
+        if isinstance(image, io.BytesIO):
+            image = image.getvalue()
+        
+        if isinstance(image, bytes):
+            nparr = np.frombuffer(image, np.uint8)
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            if img is None:
+                raise ValueError("Failed to decode image from bytes")
+            return img
+        
+        image_str = str(image)
+        img = cv2.imread(image_str)
         if img is None:
-            raise ValueError(f"Failed to load image: {image}")
+            raise ValueError(f"Failed to load image: {image_str}")
         
         return img
 
