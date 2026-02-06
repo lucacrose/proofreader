@@ -46,10 +46,10 @@ class TradeEngine:
 
     def _ensure_assets(self):
         assets = {
-            DB_PATH: f"{BASE_URL}/item_database.json",
-            MODEL_PATH: f"{BASE_URL}/yolo.pt",
-            CLIP_BEST_PATH: f"{BASE_URL}/clip.pt",
-            CLASS_MAP_PATH: f"{BASE_URL}/class_mapping.json"
+            DB_PATH: f"{BASE_URL}/releases/download/v1.1.0/item_database.json",
+            MODEL_PATH: f"{BASE_URL}/releases/download/v1.1.0/yolo.pt",
+            CLIP_BEST_PATH: f"{BASE_URL}/releases/download/v1.1.0/clip.pt",
+            CLASS_MAP_PATH: f"{BASE_URL}/releases/download/v1.1.0/class_mapping.json"
         }
 
         for path, url in assets.items():

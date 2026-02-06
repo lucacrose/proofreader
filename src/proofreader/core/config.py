@@ -5,7 +5,7 @@ from pathlib import Path
 # --- BASE PATHS ---
 # Resolves to the 'proofreader' root directory
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-BASE_URL = "https://github.com/lucacrose/proofreader/releases/latest/download"
+BASE_URL = "https://github.com/lucacrose/proofreader"
 
 # --- ASSETS & MODELS ---
 ASSETS_PATH = BASE_DIR / "assets"
