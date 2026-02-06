@@ -8,9 +8,9 @@ A high-speed vision pipeline for reading Roblox trade screenshots.
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Build Status](https://github.com/lucacrose/proofreader/actions/workflows/build.yml/badge.svg)](https://github.com/lucacrose/proofreader/actions)
 [![GPU](https://img.shields.io/badge/GPU-CUDA-blueviolet)](https://developer.nvidia.com/cuda-zone)
-[![YOLOv11](https://img.shields.io/badge/model-YOLOv11-blueviolet)](https://github.com/ultralytics/ultralytics)
+[![YOLO26](https://img.shields.io/badge/model-YOLO26-blueviolet)](https://github.com/ultralytics/ultralytics)
 
-Proofreader transforms unstructured screenshots of Roblox trades ("proofs", hence "proofreader") into structured Python dictionaries. By combining **YOLOv11** for object detection, **CLIP** for visual similarity, and **EasyOCR**, it achieves high accuracy across diverse UI themes, resolutions, and extensions.
+Proofreader transforms unstructured screenshots of Roblox trades ("proofs", hence "proofreader") into structured Python dictionaries. By combining **YOLO26** for object detection, **CLIP** for visual similarity, and **EasyOCR**, it achieves high accuracy across diverse UI themes, resolutions, and extensions.
 
 ## Why Proofreader?
 
@@ -73,7 +73,7 @@ print(f"Robux In: {data['incoming']['robux_value']}")
 ## 🧩 How it Works
 The model handles the inconsistencies of user-generated screenshots (varied crops, UI themes, and extensions) through a multi-stage process:
 
-1. **Detection:** YOLOv11 localizes item cards, thumbnails, and robux containers.
+1. **Detection:** YOLO26 localizes item cards, thumbnails, and robux containers.
 
 2. **Spatial Organization:** Assigns child elements (names/values) to parents and determines trade side.
 
@@ -122,7 +122,7 @@ python scripts/train_models.py
 
 ## 🛠️ Tech Stack
 
-- **Vision:** YOLOv11 (Detection), CLIP (Embeddings), OpenCV (Processing)
+- **Vision:** YOLO26 (Detection), CLIP (Embeddings), OpenCV (Processing)
 - **OCR:** EasyOCR
 - **Logic:** RapidFuzz (Fuzzy String Matching)
 - **Core:** Python 3.12, PyTorch, NumPy
