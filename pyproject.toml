@@ -4,23 +4,23 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rbx-proofreader"
-version = "1.0.1"
+version = "1.0.2"
 description = "Visual trade detection and OCR engine"
 readme = "README.md"
 requires-python = ">=3.12"
 license = {text = "MIT"}
 dependencies = [
-    "easyocr>=1.7.0",
-    "numpy>=1.24.0",
-    "opencv-python>=4.8.0",
-    "Pillow>=10.0.0",
-    "playwright>=1.40.0",
-    "rapidfuzz>=3.0.0",
-    "requests>=2.31.0",
-    "torch>=2.0.0",
-    "tqdm>=4.66.0",
-    "transformers>=4.30.0",
-    "ultralytics>=8.0.0"
+    "easyocr>=1.7.0,<2.0.0",
+    "numpy>=1.24.0,<2.0.0",
+    "opencv-python>=4.8.0,<5.0.0",
+    "Pillow>=10.0.0,<11.0.0",
+    "playwright>=1.40.0,<2.0.0",
+    "rapidfuzz>=3.0.0,<4.0.0",
+    "requests>=2.31.0,<3.0.0",
+    "torch>=2.0.0,<3.0.0",
+    "tqdm>=4.66.0,<5.0.0",
+    "transformers>=4.30.0,<5.0.0",
+    "ultralytics>=8.0.0,<9.0.0",
 ]
 
 [tool.setuptools]
