@@ -54,7 +54,7 @@ class TradeEngine:
 
         for path, url in assets.items():
             if not path.exists():
-                print(f"📦 {path.name} missing. Downloading from latest release...")
+                print(f"📦 {path.name} missing. Downloading from published release...")
                 self._download_file(url, path)
 
     def _download_file(self, url, dest_path):
