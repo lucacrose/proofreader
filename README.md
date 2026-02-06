@@ -23,20 +23,20 @@ Roblox trade screenshots are commonly used as proof in marketplaces, moderation 
 
 ## ⚡ Performance
 
-Tested on an **RTX 5070** using $n=500$ real-world "worst-case" user screenshots (compressed, cropped, and varied UI).
+Tested on an **RTX 5070** using $n=1300$ real-world "worst-case" user screenshots (compressed, cropped, and varied UI).
 
 | Metric                  | Result (E2E)                |
 |:------------------------|:----------------------------|
-| Exact Match Accuracy    | 97.2% (95% CI: 95.4–98.5%)  |
-| Median latency          | 36.8 ms                     |
-| 95th percentile latency | 73.4 ms                     |
+| Exact Match Accuracy    | 98.4% (95% CI: 97.5–99.0%)  |
+| Median latency          | 28.0 ms                     |
+| 95th percentile latency | 47.4 ms                     |
 
 > [!NOTE]
-> End-to-End **(E2E)** latency includes image loading, YOLO detection, spatial organization, CLIP similarity matching, and OCR fallback.
+> Latencies above are reported End-to-End (**E2E**), including image loading, YOLO detection, spatial organization, CLIP matching, and OCR fallback. If passing images directly as NumPy arrays, median latency is 20.5 ms (35.0 ms P95).
 
 ## ✨ Key Features
 
-- **Sub-40ms Latency:** Optimized with "Fast-Path" logic that skips OCR for high-confidence visual matches, ensuring near-instant processing.
+- **Sub-30ms Latency:** Optimized with "Fast-Path" logic that skips OCR for high-confidence visual matches, ensuring near-instant processing.
 
 - **Multi-modal decision engine:** Weighs visual embeddings against OCR text to resolve identities across 2,500+ distinct item classes.
 
@@ -53,7 +53,7 @@ pip install rbx-proofreader
 ```
 
 > [!IMPORTANT]
-> **Hardware Acceleration:** Proofreader automatically detects NVIDIA GPUs. For sub-40ms performance, ensure you have the CUDA-enabled version of PyTorch installed. If a CPU-only environment is detected on a GPU-capable machine, the engine will provide the exact `pip` command to fix your environment.
+> **Hardware Acceleration:** Proofreader automatically detects NVIDIA GPUs. For sub-30ms performance, ensure you have the CUDA-enabled version of PyTorch installed. If a CPU-only environment is detected on a GPU-capable machine, the engine will provide the exact `pip` command to fix your environment.
 
 ### Usage
 
