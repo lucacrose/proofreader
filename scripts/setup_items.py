@@ -4,7 +4,6 @@ import os
 import shutil
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import ThreadPoolExecutor
 from proofreader.core.config import THUMBNAILS_DIR, TRAIN_THUMBNAILS_DIR, DB_PATH, DEVICE
 
 THUMBNAILS_DIR.mkdir(parents=True, exist_ok=True)
